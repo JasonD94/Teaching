@@ -166,9 +166,6 @@ int iSENSE_Upload::POST_JSON_KEY()
 
     */
 
-    // Set up the POST URL
-    //string post_URL = devURL + "/projects/" + project_ID + "/jsonDataUpload";
-
     // Format the DATA to be uploaded. Call another function to format this.
 
 

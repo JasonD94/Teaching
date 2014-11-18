@@ -24,10 +24,10 @@ int main ()
     iSENSE_Upload test;
 
     // Add project info / dataset info to the object
-    test.set_project_ID(555);
+    test.set_project_ID(929);
     test.set_project_title("TEST");
-    test.set_project_label("label goes here");
-    test.set_contributor_key("key goes here");
+    test.set_project_label("cURL");
+    test.set_contributor_key("123");
 
     // At some point make it possible to add data / fields
 

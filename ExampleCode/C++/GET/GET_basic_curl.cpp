@@ -1,8 +1,12 @@
 #include <iostream>
 #include <stdio.h>
 #include <curl/curl.h>      //CURL to make HTTP requests
+#include "../../../../picojson.h"    // May need to change the path for this if not in git repo
 
-using namespace std;
+using std::cout;
+using std::cin;
+using std::string;
+using std::endl;
 
 int main()
 {
@@ -15,6 +19,7 @@ int main()
     ************************************************************************/
 
     // This project will try using CURL to make a basic GET request to rSENSE
+    // It will then save the JSON it recieves into a picojson object.
     CURL *curl;
     CURLcode res;
 
@@ -22,7 +27,7 @@ int main()
 
     if(curl)
     {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://rsense-dev.cs.uml.edu/api/v1/projects/821");
+        curl_easy_setopt(curl, CURLOPT_URL, "http://rsense-dev.cs.uml.edu/api/v1/projects/929");
 
         /* example.com is redirected, so we tell libcurl to follow redirection */
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -35,6 +40,12 @@ int main()
         {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
+        }
+        // Good to try and parse the JSON into a PICOJSON object
+        else
+        {
+
+
         }
 
         /* always cleanup */

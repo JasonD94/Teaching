@@ -2,6 +2,7 @@
 #include <string>                     // std::string, std::to_string;
 #include <curl/curl.h>              // cURL to make HTTP requests
 #include "../../../../picojson.h"    // May need to change the path for this if not in git repo
+#include <sstream>              // stringstreams, converting ints to numbers
 
 #include <vector>
 using std::vector;
@@ -91,6 +92,7 @@ class iSENSE_Upload
 
 
         string upload_URL;                         // URL to upload the JSON to
+        string get_URL;                              // URL to grab JSON from
         string upload_data;                        // the upload string, in JSON
         string contributor_label;                // Label for the contributor key. by default this is "cURL"
         string contributor_key;                  // contributor key for the project
@@ -114,6 +116,13 @@ iSENSE_Upload::iSENSE_Upload()
 void iSENSE_Upload::set_project_ID(int proj_ID)
 {
     project_ID = proj_ID;
+
+    // Convert PROJECT ID from an int to a string using stringstreams.
+    stringstream num_to_string;                                // First part converts a number (int in this case) to a string
+    num_to_string << project_ID;
+
+    upload_URL = devURL + "/projects/" + num_to_string.str() + "/jsonDataUpload";
+    get_URL = devURL + "/projects/" + num_to_string.str() ;
 }
 
 // The user should also set the project title
@@ -218,6 +227,7 @@ void iSENSE_Upload::DEBUG()
 {
     /*
         string upload_URL;                         // URL to upload the JSON to
+        string get_URL;                              // URL to grab JSON from
         string upload_data;                        // the upload string, in JSON
         string contributor_label;                // Label for the contributor key. by default this is "cURL"
         string contributor_key;                  // contributor key for the project
@@ -228,5 +238,8 @@ void iSENSE_Upload::DEBUG()
     cout << "PROJECT TITLE = " << title << endl;
     cout << "PROJECT ID = " << project_ID << endl;
     cout << "Contributor Key = " << contributor_key << endl;
-    cout << "contributor Label = " << contributor_label << endl;
+    cout << "Contributor Label = " << contributor_label << endl;
+    cout << "Upload URL: " << upload_URL << endl;
+    cout << "GET URL: " << get_URL << endl;
+    cout << "Upload Data: " << upload_data << endl;
 }

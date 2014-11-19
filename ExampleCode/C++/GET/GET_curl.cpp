@@ -12,6 +12,15 @@ using std::endl;
 // For picojson
 using namespace picojson;
 
+/*
+    This program allows you to grab data from any rSENSE project.
+    It could also work on iSENSE if you change the URL.
+
+    It currently prints out the following information:
+    1. All the data that is attached to the project in JSON format.
+    2. Just the field object
+    3. The field IDs, followed by their type (i.e. number/text/etc)
+*/
 
 // This is from the picojson example page
 // I use it to save the JSON from iSENSE to a temp file.

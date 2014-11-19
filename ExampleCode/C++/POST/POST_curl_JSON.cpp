@@ -5,7 +5,6 @@
 #include "isenseupload.h"      // using isenseupload.h
 #include "../../../../picojson.h"    // May need to change the path for this if not in git repo
 
-
 using std::cout;
 using std::cin;
 using std::string;
@@ -26,21 +25,23 @@ int main ()
     iSENSE_Upload test;
 
     // Add project info / dataset info to the object
-    test.set_project_ID(929);
+    test.set_project_ID("929");
     test.set_project_title("TEST");
     test.set_project_label("cURL");
     test.set_contributor_key("123");
 
     // At some point make it possible to add data / fields
+    // Try grabbing fields. Hope this works!
+    test.GET_PROJ_FIELDS();
 
     // DEBUG testing
     test.DEBUG();
 
 
-    value json_test;
-    cin >> json_test;
-    json = json_test.serialize();
-    cout << "just a test: " << json << endl;
+    // value json_test;
+    // cin >> json_test;
+    // json = json_test.serialize();
+    // cout << "just a test: " << json << endl;
 
     // "4493" >> json_test;
     // "this letters" >> json_test;

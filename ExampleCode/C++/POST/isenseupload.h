@@ -1,8 +1,13 @@
+/*
+    Need to make a function that formats the data for upload.
+    Then I can test uploading JSON using fields grabbed from a project ID!
+*/
+
 #include <iostream>
-#include <string>                     // std::string, std::to_string;
-#include <curl/curl.h>              // cURL to make HTTP requests
-#include "../../../../picojson.h"    // May need to change the path for this if not in git repo
-#include <sstream>              // stringstreams, converting ints to numbers
+#include <string>                      // std::string, std::to_string;
+#include <curl/curl.h>               // cURL to make HTTP requests
+#include "../../../../picojson.h"     // May need to change the path for this if not in git repo
+#include <sstream>                 // stringstreams, converting ints to numbers
 
 #include <vector>
 using std::vector;
@@ -12,6 +17,56 @@ using std::cin;
 using std::string;
 using std::endl;
 using std::stringstream;        // for concating an int onto a string.
+
+// For picojson
+using namespace picojson;
+
+// This is from an example program on picojson's github.
+// It is used for saving JSON from a server to a temp file.
+// See the following URL for an example:
+// https://github.com/kazuho/picojson/blob/master/examples/github-issues.cc
+typedef struct {
+  char* data;   // response data from server
+  size_t size;  // response size of data
+} MEMFILE;
+
+MEMFILE*
+memfopen() {
+  MEMFILE* mf = (MEMFILE*) malloc(sizeof(MEMFILE));
+  mf->data = NULL;
+  mf->size = 0;
+  return mf;
+}
+
+void
+memfclose(MEMFILE* mf) {
+  if (mf->data) free(mf->data);
+  free(mf);
+}
+
+size_t
+memfwrite(char* ptr, size_t size, size_t nmemb, void* stream) {
+  MEMFILE* mf = (MEMFILE*) stream;
+  int block = size * nmemb;
+  if (!mf->data)
+    mf->data = (char*) malloc(block);
+  else
+    mf->data = (char*) realloc(mf->data, mf->size + block);
+  if (mf->data) {
+    memcpy(mf->data + mf->size, ptr, block);
+    mf->size += block;
+  }
+  return block;
+}
+
+char*
+memfstrdup(MEMFILE* mf) {
+  char* buf = (char*)malloc(mf->size + 1);
+  memcpy(buf, mf->data, mf->size);
+  buf[mf->size] = 0;
+  return buf;
+}
+
 
 /*
     At some point this will hold all the upload related stuff for iSENSE uploading in C++
@@ -56,7 +111,7 @@ class iSENSE_Upload
         iSENSE_Upload();                             // Default constructor
 
         // This function should be called by the user, and should set up all the fields and what not.
-        void set_project_ID(int proj_ID);
+        void set_project_ID(string proj_ID);
 
         // The user should also set the project title
         void set_project_title(string proj_title);
@@ -67,7 +122,7 @@ class iSENSE_Upload
         // As well as the contributor key they will be using
         void set_contributor_key(string contr_key);
 
-        //void GET_PROJ_INFO();                    // this will grab info from the project page and display it, ie "api/v1/projects/PROJECT_ID"
+        //void GET_PROJ_INFO();                   // this will grab info from the project page and display it, ie "api/v1/projects/PROJECT_ID"
         void GET_PROJ_FIELDS();                 // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // Functions for uploading data to rSENSE
@@ -81,23 +136,27 @@ class iSENSE_Upload
 
     private:
 
-        // Data that will be formatted. Will need to add functions for this
-        vector <string> fields;                 // this will contain all the field IDs
+        // Holds the JSON we grab from the given project ID
+        value json_data;
+        value fields;
+        array fields_array;
 
-        string timestamp;
+        // Data for the fields. We'll match them with the given field_array above.
+        vector <string> timestamp;
         vector <string> numbers;
         vector <string> text;
-        string latitude;
-        string longitude;
+        vector <string> latitude;
+        vector <string> longitude;
 
 
+        // Data needed for processing the upload request
         string upload_URL;                         // URL to upload the JSON to
         string get_URL;                              // URL to grab JSON from
         string upload_data;                        // the upload string, in JSON
         string contributor_label;                // Label for the contributor key. by default this is "cURL"
         string contributor_key;                  // contributor key for the project
         string title;                                     // title for the dataset
-        int project_ID;                                // project ID of the project
+        string project_ID;                           // project ID of the project
 };
 
 
@@ -105,24 +164,22 @@ iSENSE_Upload::iSENSE_Upload()
 {
     // Set these to default values for future references
     upload_URL = "URL";
+    get_URL = "URL";
     upload_data = "upload";
     contributor_key = "KEY";
+    contributor_label = "LABEL";
     title = "TITLE";
-    project_ID = 0;
+    project_ID = "empty";
 }
 
 
 // This function should be called by the user, and should set up all the fields and what not.
-void iSENSE_Upload::set_project_ID(int proj_ID)
+void iSENSE_Upload::set_project_ID(string proj_ID)
 {
     project_ID = proj_ID;
 
-    // Convert PROJECT ID from an int to a string using stringstreams.
-    stringstream num_to_string;                                // First part converts a number (int in this case) to a string
-    num_to_string << project_ID;
-
-    upload_URL = devURL + "/projects/" + num_to_string.str() + "/jsonDataUpload";
-    get_URL = devURL + "/projects/" + num_to_string.str() ;
+    upload_URL = devURL + "/projects/" + project_ID + "/jsonDataUpload";
+    get_URL = devURL + "/projects/" + project_ID ;
 }
 
 // The user should also set the project title
@@ -141,6 +198,72 @@ void iSENSE_Upload::set_project_label(string label)
 void iSENSE_Upload::set_contributor_key(string contr_key)
 {
     contributor_key = contr_key;
+}
+
+// This is pretty much straight from the GET_curl.cpp file.
+void iSENSE_Upload::GET_PROJ_FIELDS()
+{
+    // Detect errors. We need a valid project ID before we try and perform a GET request.
+    if(project_ID == "empty")
+    {
+        cout << "Error - project ID not set!\n";
+        return;
+    }
+
+    // This project will try using CURL to make a basic GET request to rSENSE
+    // It will then save the JSON it recieves into a picojson object.
+    CURL *curl = curl_easy_init();;
+    CURLcode res;
+    MEMFILE* json_file = memfopen();           // Writing JSON to this file.
+    char error[256];                                        // Errors get written here
+
+    // Set the get_URL
+    get_URL = "http://rsense-dev.cs.uml.edu/api/v1/projects/" + project_ID;
+
+    if(curl)
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, get_URL.c_str());
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);    // Write errors to the char array "error"
+
+        // From the picojson example, "github-issues.cc". Used  for writing the JSON to a file.
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, memfwrite);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, json_file);
+
+        // Perform the request, res will get the return code
+        res = curl_easy_perform(curl);
+
+        // Check for errors before trying to use the JSON
+        if(res != CURLE_OK)
+        {
+            // Print out the error
+            cout << "Error occured! Error is: ";
+            cout << error << endl;
+
+            // Quit so we don't go to the next part.
+            return;
+        }
+         // Good to try and parse the JSON into a PICOJSON object if we get here
+        string errors;
+
+        // This will parse the JSON file.
+        parse(json_data, json_file->data, json_file->data + json_file->size, &errors);
+
+        // If we have errors, print them out and quit.
+        if(errors.empty() != true)
+        {
+            cout << "Error parsing JSON file!\n";
+            cout << "Error was: " << errors;
+            return;
+        }
+
+        // Save the fields to the field array
+        fields = json_data.get("fields");
+        fields_array = fields.get<array>();
+    }
+
+    // Clean up cURL and close the memfile
+    curl_easy_cleanup(curl);
+    curl_easy_init();
 }
 
 
@@ -236,7 +359,58 @@ void iSENSE_Upload::DEBUG()
     cout << "PROJECT ID = " << project_ID << endl;
     cout << "Contributor Key = " << contributor_key << endl;
     cout << "Contributor Label = " << contributor_label << endl;
-    cout << "Upload URL: " << upload_URL << endl;
-    cout << "GET URL: " << get_URL << endl;
-    cout << "Upload Data: " << upload_data << endl;
+    cout << "Upload URL: " << upload_URL << "\n";
+    cout << "GET URL: " << get_URL << "\n\n";
+    cout << "Upload Data: " << upload_data << "\n\n";
+    cout << "GET Data: " << json_data.serialize() << "\n\n";
+    cout << "Field Data: " << fields.serialize() << "\n\n";
+
+    // Print out the field's, along with their type.
+    array::iterator it;
+
+    cout << "Printing out all the fields here: \n";
+
+    if(fields.is<picojson::null>() == true)
+    {
+        return;
+    }
+
+    // We made an iterator above, that will let us run through the 3 fields (or how ever many we find) and print them out.
+    for(it =fields_array.begin(); it != fields_array.end(); it++)
+    {
+        // Output all the fields
+        object obj = it->get<object>();
+        cout << "id: " << obj["id"].to_str();
+
+        /* This part will be important for POSTing. We will want to save the fields and know what type they are.
+            If we have a timestamp, number, text, latitude or longitude.
+            We can detect this by looking at the "type" value.
+        */
+
+        // Grab the  type in number form.
+        int type = obj["type"].get<double>();
+
+        // Now we can build a switch statement around this!
+        switch(type)
+        {
+            case 1:
+                cout << "\tWe got a timestamp field here!\n";
+                break;
+            case 2:
+                cout << "\tFound a number here!\n";
+                break;
+            case 3:
+                cout << "\tThere's some text over here!\n";
+                break;
+            case 4:
+                cout << "\tLatitude here!\n";
+                break;
+            case 5:
+                cout << "\tLongitude here!\n";
+                break;
+            default:
+                cout << "Error, why'd we get here?\n";
+                break;
+        }
+    }
 }

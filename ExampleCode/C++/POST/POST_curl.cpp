@@ -10,6 +10,13 @@ using std::string;
 using std::endl;
 using std::stringstream;        // for concating an int onto a string.
 
+/*
+
+    This is a POST request which is hard coded to one project - project 929
+    Future POST programs will let you upload to any project, by using a class to do
+    most of the work for us.
+
+*/
 
 // Basic upload a test. Uploads a number, a string and a timestamp
 void upload_to_rsense(string title, int num, string letters, time_t timestamp)

@@ -12,6 +12,8 @@ using std::string;
 using std::endl;
 using std::stringstream;        // for concating an int onto a string.
 
+// For picojson
+using namespace picojson;
 
 // Main, calls upload function. Uses ***something*** for JSON serialization / parsing.
 int main ()
@@ -34,6 +36,16 @@ int main ()
     // DEBUG testing
     test.DEBUG();
 
+
+    value json_test;
+    cin >> json_test;
+    json = json_test.serialize();
+    cout << "just a test: " << json << endl;
+
+    // "4493" >> json_test;
+    // "this letters" >> json_test;
+    // "4494" >> json_test;
+    // "123456789" >> json_test;
 
     // string title;           // Four variables for user input
     // string letters;

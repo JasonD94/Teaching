@@ -1,17 +1,12 @@
-/*
-    Need to make a function that formats the data for upload.
-    Then I can test uploading JSON using fields grabbed from a project ID!
-*/
-
 #include <iostream>
 #include <string>                      // std::string, std::to_string;
 #include <curl/curl.h>               // cURL to make HTTP requests
 #include "../../../../picojson.h"     // May need to change the path for this if not in git repo
 #include <sstream>                 // stringstreams, converting ints to numbers
+#include <time.h>                   // Timestamps
+#include <vector>                   // Vectors
 
-#include <vector>
 using std::vector;
-
 using std::cout;
 using std::cin;
 using std::string;
@@ -80,30 +75,6 @@ memfstrdup(MEMFILE* mf) {
     - POST JSON appending to a dataset
 */
 
-/*
-
-  {
-    "title" : "Title for the dataset (string)"
-    "contribution_key" : "key created by project owner (string)",
-    "contributor_name" : (string),
-    "data" :
-    {
-        "FIELD_ID" : [1,2,3,4,5],
-        "FIELD_ID_2" : ["blue","red",,,"green"]
-        ...
-    }
-
-  }
-
-    Field types:
-
-    1: timestamp
-    2: number
-    3: string
-    4: lat
-    5: long
-
-*/
 
 class iSENSE_Upload
 {
@@ -124,6 +95,14 @@ class iSENSE_Upload
 
         //void GET_PROJ_INFO();                   // this will grab info from the project page and display it, ie "api/v1/projects/PROJECT_ID"
         void GET_PROJ_FIELDS();                 // Given a URL has been set, the fields will be pulled and put into the fields vector.
+
+        // These functions will push data back to the vectors.
+        void timestamp_pushback(time_t new_timestamp);
+        void generate_timestamp(void);
+        void numbers_pushback(string new_numbers);
+        void text_pushback(string new_text);
+        void latitude_pushback(string new_latitude);
+        void longitude_pushback(string new_longitude);
 
         // Functions for uploading data to rSENSE
         void set_URL(string s_URL);             // Set the URL for this object
@@ -147,7 +126,6 @@ class iSENSE_Upload
         vector <string> text;
         vector <string> latitude;
         vector <string> longitude;
-
 
         // Data needed for processing the upload request
         string upload_URL;                         // URL to upload the JSON to
@@ -176,11 +154,13 @@ iSENSE_Upload::iSENSE_Upload()
 // This function should be called by the user, and should set up all the fields and what not.
 void iSENSE_Upload::set_project_ID(string proj_ID)
 {
+    // Set the Project ID, and the upload/get URLs as well.
     project_ID = proj_ID;
 
     upload_URL = devURL + "/projects/" + project_ID + "/jsonDataUpload";
     get_URL = devURL + "/projects/" + project_ID ;
 }
+
 
 // The user should also set the project title
 void iSENSE_Upload::set_project_title(string proj_title)
@@ -188,17 +168,73 @@ void iSENSE_Upload::set_project_title(string proj_title)
     title = proj_title;
 }
 
+
 // This one is optional, by default the label will be "cURL".
 void iSENSE_Upload::set_project_label(string label)
 {
     contributor_label = label;
 }
 
+
 // As well as the contributor key they will be using
 void iSENSE_Upload::set_contributor_key(string contr_key)
 {
     contributor_key = contr_key;
 }
+
+
+// Extra function that the user can call to just generate a timestamp
+// and push it back to the timestamp vector.
+void iSENSE_Upload::generate_timestamp(void)
+{
+    time_t time_stamp;
+
+    // Get timestamp (unix)
+    time_stamp = time(NULL);
+
+    timestamp_pushback(time_stamp);
+}
+
+
+// Given a timestamp in time_t format, push it back to the timestamp vector
+void iSENSE_Upload::timestamp_pushback(time_t new_timestamp)
+{
+    // Add the number and the bracket/comma to the upload string.
+    stringstream num_to_string;                                // First part converts a number (int in this case) to a string
+    num_to_string << new_timestamp;
+
+    // Push back to the timestamp vector
+    timestamp.push_back(num_to_string.str());
+}
+
+
+// Given a number, this will push it back to the vector of numbers
+void iSENSE_Upload::numbers_pushback(string new_numbers)
+{
+    numbers.push_back(new_numbers);
+}
+
+
+// Given a string of text, this will push the string back to the vector of text strings
+void iSENSE_Upload::text_pushback(string new_text)
+{
+    text.push_back(new_text);
+}
+
+
+// Given a latitude in string form, this function pushes a latitude back to the vector of latitude data
+void iSENSE_Upload::latitude_pushback(string new_latitude)
+{
+    latitude.push_back(new_latitude);
+}
+
+
+// Given a longitude in string form, this function pushes a longitude back to the vector of longitude data
+void iSENSE_Upload::longitude_pushback(string new_longitude)
+{
+    longitude.push_back(new_longitude);
+}
+
 
 // This is pretty much straight from the GET_curl.cpp file.
 void iSENSE_Upload::GET_PROJ_FIELDS()
@@ -343,18 +379,9 @@ int iSENSE_Upload::POST_JSON_KEY()
     curl_global_cleanup();
 }
 
+
 void iSENSE_Upload::DEBUG()
 {
-    /*
-        string upload_URL;                         // URL to upload the JSON to
-        string get_URL;                              // URL to grab JSON from
-        string upload_data;                        // the upload string, in JSON
-        string contributor_label;                // Label for the contributor key. by default this is "cURL"
-        string contributor_key;                  // contributor key for the project
-        string title;                                     // title for the dataset
-        int project_ID;                                // project ID of the project
-    */
-
     cout << "PROJECT TITLE = " << title << endl;
     cout << "PROJECT ID = " << project_ID << endl;
     cout << "Contributor Key = " << contributor_key << endl;
@@ -365,10 +392,83 @@ void iSENSE_Upload::DEBUG()
     cout << "GET Data: " << json_data.serialize() << "\n\n";
     cout << "Field Data: " << fields.serialize() << "\n\n";
 
+    // Going to try outputting everything in the vectors here.
+    vector<string>::iterator x;
+
+    cout << "Timestamps in this project: \n";
+
+    // Try printing everything out.
+    for(x = timestamp.begin(); x < timestamp.end(); x++)
+    {
+        cout << *x << endl;
+    }
+
+    // If we find nothing, let the user know.
+    if(timestamp.begin() == timestamp.end())
+    {
+        cout << "No timestampsfound.\n";
+    }
+
+    cout << "\nNumbers in this project: \n";
+
+    // Try printing everything out.
+    for(x = numbers.begin(); x < numbers.end(); x++)
+    {
+        cout << *x << endl;
+    }
+
+    // If we find nothing, let the user know.
+    if(numbers.begin() == numbers.end())
+    {
+        cout << "No numbers found.\n";
+    }
+
+    cout << "\nText here in this project: \n";
+
+    // Try printing everything out.
+    for(x = text.begin(); x < text.end(); x++)
+    {
+        cout << *x << endl;
+    }
+
+    // If we find nothing, let the user know.
+    if(text.begin() == text.end())
+    {
+        cout << "No text found.\n";
+    }
+
+    cout << "\nLatitude data in this project: \n";
+
+    // Try printing everything out.
+    for(x = latitude.begin(); x < latitude.end(); x++)
+    {
+        cout << *x << endl;
+    }
+
+    // If we find nothing, let the user know.
+    if(latitude.begin() == latitude.end())
+    {
+        cout << "No latitude data found.\n";
+    }
+
+    cout << "\nLongitude data in this project: \n";
+
+    // Try printing everything out.
+    for(x = longitude.begin(); x < longitude.end(); x++)
+    {
+        cout << *x << endl;
+    }
+
+    // If we find nothing, let the user know.
+    if(longitude.begin() == longitude.end())
+    {
+        cout << "No longitude data found.\n";
+    }
+
     // Print out the field's, along with their type.
     array::iterator it;
 
-    cout << "Printing out all the fields here: \n";
+    cout << "\nPrinting out all the fields here, using the array fields_array: \n";
 
     if(fields.is<picojson::null>() == true)
     {

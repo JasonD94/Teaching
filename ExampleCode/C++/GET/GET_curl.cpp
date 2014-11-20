@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdio.h>
-#include <curl/curl.h>      //CURL to make HTTP requests
+#include <curl/curl.h>              //CURL to make HTTP requests
 #include "../../../../picojson.h"    // May need to change the path for this if not in git repo
 
 // Don't cloud up the namespace

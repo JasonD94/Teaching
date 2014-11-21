@@ -79,21 +79,13 @@ memfstrdup(MEMFILE* mf) {
 class iSENSE_Upload
 {
     public:
-        iSENSE_Upload();                             // Default constructor
+        iSENSE_Upload();                                                    // Default constructor
+        // Should make another constructor that takes in the below info in one go.
+        void set_project_ID(string proj_ID);                        // This function should be called by the user, and should set up all the fields and what not.
+        void set_project_title(string proj_title);                  // The user should also set the project title
+        void set_project_label(string label);                       // This one is optional, by default the label will be "cURL".
+        void set_contributor_key(string contr_key);          // User needs to set the contributor key they will be using
 
-        // This function should be called by the user, and should set up all the fields and what not.
-        void set_project_ID(string proj_ID);
-
-        // The user should also set the project title
-        void set_project_title(string proj_title);
-
-        // This one is optional, by default the label will be "cURL".
-        void set_project_label(string label);
-
-        // As well as the contributor key they will be using
-        void set_contributor_key(string contr_key);
-
-        //void GET_PROJ_INFO();                   // this will grab info from the project page and display it, ie "api/v1/projects/PROJECT_ID"
         void GET_PROJ_FIELDS();                 // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // These functions will push data back to the vectors.
@@ -109,7 +101,8 @@ class iSENSE_Upload
         void Format_Upload_String();          // This formats the upload string
         int POST_JSON_KEY();                      // Post using contributor key (will not worry about Username/Password)
 
-        void DEBUG();   // for debugging, dump all the variables in here.
+        // for debugging, dump all the variables in here.
+        void DEBUG();
 
         string devURL = "http://rsense-dev.cs.uml.edu/api/v1";
 
@@ -303,7 +296,7 @@ void iSENSE_Upload::GET_PROJ_FIELDS()
 }
 
 
-int iSENSE_Upload::POST_JSON_KEY()
+void iSENSE_Upload::POST_JSON_KEY()
 {
     /*
     ERROR CHECKING
@@ -323,7 +316,19 @@ int iSENSE_Upload::POST_JSON_KEY()
     2. Build the JSON we will upload. We can do this assuming the user has done the above steps.
     3. Make a POST request. If we format stuff right we should be good.
 
+    upload_URL = "URL";
+    get_URL = "URL";
+    upload_data = "upload";
+    contributor_key = "KEY";
+    contributor_label = "LABEL";
+    title = "TITLE";
+    project_ID = "empty";
+
     */
+    if(project_ID == "empty")
+    {
+        cout << "Error - please set a "
+    }
 
     // Format the DATA to be uploaded. Call another function to format this.
 

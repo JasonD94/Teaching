@@ -1,27 +1,25 @@
 #include <iostream>             // std::cout, std::cin
-#include <string>                  // std::string, std::to_string;
-#include <curl/curl.h>           // cURL to make HTTP requests
-#include <time.h>                 // Timestamps
-#include <sstream>              // stringstreams, converting ints to numbers
+#include <string>             	// std::string, std::to_string;
+#include <curl/curl.h>        	// cURL to make HTTP requests
+#include <time.h>          	// Timestamps
+#include <sstream>		// stringstreams, converting ints to numbers
 
 using std::cout;
 using std::cin;
 using std::string;
 using std::endl;
-using std::stringstream;        // for concating an int onto a string.
+using std::to_string;        	// for converting an int into a string.
 
 /*
-
     This is a POST request which is hard coded to one project - project 929
     Future POST programs will let you upload to any project, by using a class to do
     most of the work for us.
-
 */
 
 // Basic upload a test. Uploads a number, a string and a timestamp
 void upload_to_rsense(string title, int num, string letters, time_t timestamp)
 {
-    string upload;     // DATA for the project. This will be the entire uploaded string.
+    string upload;     		// DATA for the project. This will be the entire uploaded string.
 
     //  URL for the project. Change "929" for a different project.
     string url = "http://rsense-dev.cs.uml.edu/api/v1/projects/929/jsonDataUpload";
@@ -40,22 +38,16 @@ void upload_to_rsense(string title, int num, string letters, time_t timestamp)
     upload += string("{\"title\":\"") + title + data;                   // JSON/Title/Data string
 
     // Add the number and the bracket/comma to the upload string.
-    stringstream num_to_string;                                // First part converts a number (int in this case) to a string
-    num_to_string << num;
-    upload += num_to_string.str() + string("],");      // This part adds both the number and the closing bracket to upload string
+    upload += to_string(num) + string("],");
 
     // Add the letters that were entered (+ the field ID / JSON stuff)
     upload += string("\"4275\":[\"") + letters + string("\"],");
 
     // Add the timestamp field ID, timestamp, and JSON stuff.
-    num_to_string.clear();                         // Clear the stringstream object, and add the timestamp to the upload string
-    num_to_string << timestamp;
-    upload += string( "\"4276\":[\"") + num_to_string.str() + string( "\"]}}");
+    upload += string( "\"4276\":[\"") + to_string(timestamp) + string( "\"]}}");
 
     // Debugging:
     cout << "The string is: " << upload << endl;
-
-    // TESTING - hopefully this part works!
 
     // CURL object and response code.
     CURL *curl;
@@ -84,7 +76,7 @@ void upload_to_rsense(string title, int num, string letters, time_t timestamp)
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Verbose debug output - turn this on if you are having problems. It will spit out a ton of information.
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
         cout << "rSENSE says: \n";
 

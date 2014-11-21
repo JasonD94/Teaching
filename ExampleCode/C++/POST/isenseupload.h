@@ -1,17 +1,17 @@
 #include <iostream>
-#include <string>                      // std::string, std::to_string;
-#include <curl/curl.h>               // cURL to make HTTP requests
-#include "../../../../picojson.h"     // May need to change the path for this if not in git repo
-#include <sstream>                 // stringstreams, converting ints to numbers
-#include <time.h>                   // Timestamps
-#include <vector>                   // Vectors
+#include <string>                       // std::string, std::to_string;
+#include <curl/curl.h>                  // cURL to make HTTP requests
+#include "../../../../picojson.h"       // May need to change the path for this if not in git repo
+#include <sstream>                      // stringstreams, converting ints to numbers
+#include <time.h>                       // Timestamps
+#include <vector>                       // Vectors
 
 using std::vector;
 using std::cout;
 using std::cin;
 using std::string;
 using std::endl;
-using std::stringstream;        // for concating an int onto a string.
+using std::to_string;                   // for converting an int onto a string.
 
 // For picojson
 using namespace picojson;
@@ -21,8 +21,8 @@ using namespace picojson;
 // See the following URL for an example:
 // https://github.com/kazuho/picojson/blob/master/examples/github-issues.cc
 typedef struct {
-  char* data;   // response data from server
-  size_t size;  // response size of data
+  char* data;           // response data from server
+  size_t size;          // response size of data
 } MEMFILE;
 
 MEMFILE*
@@ -65,28 +65,25 @@ memfstrdup(MEMFILE* mf) {
 
 /*
     At some point this will hold all the upload related stuff for iSENSE uploading in C++
-    Probably functions like:
+    To do:
 
-    - Upload with Contributor key
-    - Upload with username / password - don't worry about ATM
-    - GET JSON of a project given project ID
-    - GET Project Fields given project ID
-    - POST JSON dataset.
-    - POST JSON appending to a dataset
+    1)  POST JSON dataset.
+    2)  POST JSON appending to a dataset
+    3)  Upload with username / password
 */
 
 
 class iSENSE_Upload
 {
     public:
-        iSENSE_Upload();                                                    // Default constructor
+        iSENSE_Upload();                                     // Default constructor
         // Should make another constructor that takes in the below info in one go.
-        void set_project_ID(string proj_ID);                        // This function should be called by the user, and should set up all the fields and what not.
-        void set_project_title(string proj_title);                  // The user should also set the project title
-        void set_project_label(string label);                       // This one is optional, by default the label will be "cURL".
+        void set_project_ID(string proj_ID);                 // This function should be called by the user, and should set up all the fields and what not.
+        void set_project_title(string proj_title);           // The user should also set the project title
+        void set_project_label(string label);                // This one is optional, by default the label will be "cURL".
         void set_contributor_key(string contr_key);          // User needs to set the contributor key they will be using
 
-        void GET_PROJ_FIELDS();                 // Given a URL has been set, the fields will be pulled and put into the fields vector.
+        void GET_PROJ_FIELDS();                              // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // These functions will push data back to the vectors.
         void timestamp_pushback(time_t new_timestamp);
@@ -98,8 +95,8 @@ class iSENSE_Upload
 
         // Functions for uploading data to rSENSE
         void set_URL(string s_URL);             // Set the URL for this object
-        void Format_Upload_String();          // This formats the upload string
-        int POST_JSON_KEY();                      // Post using contributor key (will not worry about Username/Password)
+        void format_upload_string();            // This formats the upload string
+        void POST_JSON_KEY();                    // Post using contributor key (will not worry about Username/Password)
 
         // for debugging, dump all the variables in here.
         void DEBUG();
@@ -121,13 +118,13 @@ class iSENSE_Upload
         vector <string> longitude;
 
         // Data needed for processing the upload request
-        string upload_URL;                         // URL to upload the JSON to
-        string get_URL;                              // URL to grab JSON from
-        string upload_data;                        // the upload string, in JSON
-        string contributor_label;                // Label for the contributor key. by default this is "cURL"
-        string contributor_key;                  // contributor key for the project
-        string title;                                     // title for the dataset
-        string project_ID;                           // project ID of the project
+        string upload_URL;                      // URL to upload the JSON to
+        string get_URL;                         // URL to grab JSON from
+        string upload_data;                     // the upload string, in JSON
+        string contributor_label;               // Label for the contributor key. by default this is "cURL"
+        string contributor_key;                 // contributor key for the project
+        string title;                           // title for the dataset
+        string project_ID;                      // project ID of the project
 };
 
 
@@ -144,7 +141,7 @@ iSENSE_Upload::iSENSE_Upload()
 }
 
 
-// This function should be called by the user, and should set up all the fields and what not.
+// This function should be called by the user, and should set up all the fields.
 void iSENSE_Upload::set_project_ID(string proj_ID)
 {
     // Set the Project ID, and the upload/get URLs as well.
@@ -152,6 +149,7 @@ void iSENSE_Upload::set_project_ID(string proj_ID)
 
     upload_URL = devURL + "/projects/" + project_ID + "/jsonDataUpload";
     get_URL = devURL + "/projects/" + project_ID ;
+    GET_PROJ_FIELDS();
 }
 
 
@@ -192,12 +190,8 @@ void iSENSE_Upload::generate_timestamp(void)
 // Given a timestamp in time_t format, push it back to the timestamp vector
 void iSENSE_Upload::timestamp_pushback(time_t new_timestamp)
 {
-    // Add the number and the bracket/comma to the upload string.
-    stringstream num_to_string;                                // First part converts a number (int in this case) to a string
-    num_to_string << new_timestamp;
-
     // Push back to the timestamp vector
-    timestamp.push_back(num_to_string.str());
+    timestamp.push_back(to_string(new_timestamp));
 }
 
 
@@ -296,42 +290,40 @@ void iSENSE_Upload::GET_PROJ_FIELDS()
 }
 
 
+// Call this function to POST data to rSENSE
 void iSENSE_Upload::POST_JSON_KEY()
 {
-    /*
-    ERROR CHECKING
-    Need to make sure that everything has been setup correctly:
-
-    URL should be set
-    upload - ???
-    label / key should be set to something
-    title should be set to something other than "title"
-    project id should be set.
-    must have also pulled fields for this project
-
-    Assuming we have that info, we can try and make a POST request to rSENSE
-
-    Will need to:
-    1. Make URL to upload to, should include devURL and /project/PROJECT ID HERE/jsonDataUpload
-    2. Build the JSON we will upload. We can do this assuming the user has done the above steps.
-    3. Make a POST request. If we format stuff right we should be good.
-
-    upload_URL = "URL";
-    get_URL = "URL";
-    upload_data = "upload";
-    contributor_key = "KEY";
-    contributor_label = "LABEL";
-    title = "TITLE";
-    project_ID = "empty";
-
-    */
+    // Check that the project ID is set properly.
+    // When the ID is set, the fields are also pulled down as well.
     if(project_ID == "empty")
     {
-        cout << "Error - please set a "
+        cout << "\nError - please set a project ID!\n";
+        return;
     }
 
-    // Format the DATA to be uploaded. Call another function to format this.
+    // Check that a title and contributor key has been set.
+    if(title == "TITLE")
+    {
+        cout << "\nError - please set a project title!\n";
+        return;
+    }
 
+    if(contributor_key == "KEY")
+    {
+        cout << "\nErrror - please set a contributor key!\n";
+        return;
+    }
+
+    // If a label wasn't set, automatically set it to "cURL"
+    if(contributor_label == "LABEL")
+    {
+        contributor_label = "cURL";
+    }
+
+    // Format the data to be uploaded. Call another function to format this.
+    format_upload_string();
+
+    // Once we get the data formatted, we can try to POST to rSENSE
 
     // CURL object and response code.
     CURL *curl;
@@ -360,7 +352,7 @@ void iSENSE_Upload::POST_JSON_KEY()
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Verbose debug output - turn this on if you are having problems. It will spit out a ton of information.
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
         cout << "rSENSE says: \n";
 
@@ -385,6 +377,28 @@ void iSENSE_Upload::POST_JSON_KEY()
 }
 
 
+// This function is called by the JSON upload function
+// It formats the upload string
+void iSENSE_Upload::format_upload_string()
+{
+    // Add the title + the correct formatting
+    upload_data =  string("{\"title\":\"") + title + string("\",");
+
+    // Add the contributor key, label (name) and the data key.
+    upload_data += string("\"contribution_key\":\"") + contributor_key + string("\",");
+    upload_data += string("\"contributor_name\":\"") + contributor_label + string("\",");
+    upload_data += string("\"data\"{");
+
+    // Add each field, with its field ID and an array of all the data in its vector.
+    // Will need to check each field ID's type and then add all of the strings in that vector.
+
+
+    // Add the closing bracket to the data object/the upload object
+    upload_data += string("}}");
+}
+
+
+// Call this function to dump all the data in the given object.
 void iSENSE_Upload::DEBUG()
 {
     cout << "PROJECT TITLE = " << title << endl;

@@ -377,7 +377,7 @@ void iSENSE_Upload::POST_JSON_KEY()
 }
 
 
-// This function is called by the JSON upload function
+// This function is called by the JSON uplosad function
 // It formats the upload string
 void iSENSE_Upload::format_upload_string()
 {
@@ -392,6 +392,78 @@ void iSENSE_Upload::format_upload_string()
     // Add each field, with its field ID and an array of all the data in its vector.
     // Will need to check each field ID's type and then add all of the strings in that vector.
 
+    // Grab all the fields using an iterator. Similar to printing them all out below in the debug function.
+    array::iterator it;
+    vector<string>::iterator x;     // For going through the vectors
+
+    // Check and see if the fields object is empty
+    if(fields.is<picojson::null>() == true)
+    {
+        return;
+    }
+
+    // We made an iterator above, that will let us run through the 3 fields
+    for(it =fields_array.begin(); it != fields_array.end(); it++)
+    {
+        // Get the current object
+        object obj = it->get<object>();
+
+        // Rather than outputting the field ID, store it in the upload string.
+        upload_data += string("\n") + obj["id"].to_str() + string("\":[");
+
+        /*
+            This part will be important for POSTing. We will want to save the fields and know what type they are.
+            If we have a timestamp, number, text, latitude or longitude.
+            We can detect this by looking at the "type" value.
+        */
+
+        // Grab the  type in number form.
+        int type = obj["type"].get<double>();
+
+        // Now we can build a switch statement around this!
+        switch(type)
+        {
+            case 1:
+                // We found a timestamp, so run through that vector
+                    for(x = timestamp.begin(); x < timestamp.end(); x++)
+                    {
+                        if(timestamp.begin() != timestamp.end())
+                        {
+                            upload_data += *x + string(",");
+                        }
+                        else{
+                            upload_data += *x;
+                        }
+                    }
+                    upload_data += string("],");
+
+                break;
+
+            case 2:
+                // We found a number, so run through that vector
+
+                break;
+
+            case 3:
+                // Text here
+
+                break;
+
+            case 4:
+                // Latitude here
+
+                break;
+
+            case 5:
+                // Longitude here
+
+                break;
+
+            default:
+                cout << "Error, why'd we get here?\n";
+                break;
+        }
+    }
 
     // Add the closing bracket to the data object/the upload object
     upload_data += string("}}");

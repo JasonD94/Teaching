@@ -3,7 +3,7 @@
 #include <curl/curl.h>                  // cURL to make HTTP requests
 #include "../../../../picojson.h"        // May need to change the path for this if not in git repo
 #include <sstream>                     // stringstreams, converting ints to numbers
-#include <time.h>                       // Timestamps
+#include <ctime>                       // Timestamps
 #include <vector>                       // Vectors
 
 using std::vector;
@@ -16,50 +16,68 @@ using std::to_string;                   // for converting an int onto a string.
 // For picojson
 using namespace picojson;
 
-// This is from an example program on picojson's github.
-// It is used for saving JSON from a server to a temp file.
+// This is from the picojson example page
+// I use it to save the JSON from iSENSE to memory (temporary)
 // See the following URL for an example:
 // https://github.com/kazuho/picojson/blob/master/examples/github-issues.cc
 typedef struct {
-  char* data;           // response data from server
-  size_t size;          // response size of data
+    char* data;       // response data from server
+    size_t size;        // response size of data
 } MEMFILE;
 
-MEMFILE*
-memfopen() {
-  MEMFILE* mf = (MEMFILE*) malloc(sizeof(MEMFILE));
-  mf->data = NULL;
-  mf->size = 0;
-  return mf;
+MEMFILE*  memfopen() {
+    MEMFILE* mf = (MEMFILE*) malloc(sizeof(MEMFILE));
+    mf->data = NULL;
+    mf->size = 0;
+    return mf;
 }
 
-void
-memfclose(MEMFILE* mf) {
-  if (mf->data) free(mf->data);
-  free(mf);
+void memfclose(MEMFILE* mf) {
+    // Double check to make sure that mf exists.
+    if(mf == NULL)
+    {
+        return;
+    }
+
+    // OK to free the char array
+    if (mf != NULL && mf->data)
+    {
+        free(mf->data);
+    }
+
+    // And OK to free the structure
+    free(mf);
 }
 
-size_t
-memfwrite(char* ptr, size_t size, size_t nmemb, void* stream) {
-  MEMFILE* mf = (MEMFILE*) stream;
-  int block = size * nmemb;
-  if (!mf->data)
-    mf->data = (char*) malloc(block);
-  else
-    mf->data = (char*) realloc(mf->data, mf->size + block);
-  if (mf->data) {
-    memcpy(mf->data + mf->size, ptr, block);
-    mf->size += block;
-  }
-  return block;
+size_t memfwrite(char* ptr, size_t size, size_t nmemb, void* stream) {
+    MEMFILE* mf = (MEMFILE*) stream;
+    int block = size * nmemb;
+
+    if (!mf->data)
+    {
+        mf->data = (char*) malloc(block);
+    }
+    else
+    {
+        mf->data = (char*) realloc(mf->data, mf->size + block);
+    }
+
+    if (mf->data)
+    {
+        memcpy(mf->data + mf->size, ptr, block);
+        mf->size += block;
+    }
+
+    return block;
 }
 
-char*
-memfstrdup(MEMFILE* mf) {
-  char* buf = (char*)malloc(mf->size + 1);
-  memcpy(buf, mf->data, mf->size);
-  buf[mf->size] = 0;
-  return buf;
+char* memfstrdup(MEMFILE* mf)
+{
+    char* buf = (char*)malloc(mf->size + 1);
+    memcpy(buf, mf->data, mf->size);
+    buf[mf->size] = 0;
+
+    return buf;
 }
 
 
@@ -76,17 +94,17 @@ memfstrdup(MEMFILE* mf) {
 class iSENSE_Upload
 {
     public:
-        iSENSE_Upload();                                     // Default constructor
+        iSENSE_Upload();                                          // Default constructor
         // Should make another constructor that takes in the below info in one go.
         void set_project_ID(string proj_ID);                 // This function should be called by the user, and should set up all the fields and what not.
         void set_project_title(string proj_title);           // The user should also set the project title
         void set_project_label(string label);                // This one is optional, by default the label will be "cURL".
-        void set_contributor_key(string contr_key);          // User needs to set the contributor key they will be using
+        void set_contributor_key(string contr_key);     // User needs to set the contributor key they will be using
 
-        void GET_PROJ_FIELDS();                              // Given a URL has been set, the fields will be pulled and put into the fields vector.
+        void GET_PROJ_FIELDS();                                // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // These functions will push data back to the vectors.
-        void timestamp_pushback(time_t new_timestamp);
+        void timestamp_pushback(string new_timestamp);
         void generate_timestamp(void);
         void numbers_pushback(string new_numbers);
         void text_pushback(string new_text);
@@ -179,19 +197,21 @@ void iSENSE_Upload::set_contributor_key(string contr_key)
 void iSENSE_Upload::generate_timestamp(void)
 {
     time_t time_stamp;
+    time(&time_stamp);
+    char buffer[sizeof "2011-10-08T07:07:09Z"];
+    strftime(buffer, sizeof buffer, "%FT%TZ", gmtime(&time_stamp));
 
-    // Get timestamp (unix)
-    time_stamp = time(NULL);
+    string cplusplus_timestamp(buffer);
 
-    timestamp_pushback(time_stamp);
+    timestamp_pushback(cplusplus_timestamp);
 }
 
 
 // Given a timestamp in time_t format, push it back to the timestamp vector
-void iSENSE_Upload::timestamp_pushback(time_t new_timestamp)
+void iSENSE_Upload::timestamp_pushback(string new_timestamp)
 {
     // Push back to the timestamp vector
-    timestamp.push_back(to_string(new_timestamp));
+    timestamp.push_back(new_timestamp);
 }
 
 
@@ -354,7 +374,7 @@ void iSENSE_Upload::POST_JSON_KEY()
         // Verbose debug output - turn this on if you are having problems. It will spit out a ton of information.
         //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-        cout << "rSENSE says: \n";
+        cout << "\nrSENSE says: \n";
 
         // Perform the request, res will get the return code
         res = curl_easy_perform(curl);
@@ -429,20 +449,20 @@ void iSENSE_Upload::format_upload_string()
                 {
                     // We must only add the commas if there will be another data point after this one.
                     // In the following if statement I check to see if we hit the end of the vector.
-                    if( ( x != timestamp.end() ) && ( x + 1 == timestamp.end() ) )
+                    if( x + 1 == timestamp.end() )
                     {
                         // We hit the end of the vector, so no comma for this point.
-                        upload_data += *x;
+                        upload_data += string("\"") + *x + string("\"");
                     }
                     // In this case, we add the comma as there will be another data point to add.
                     // And commas must separate these for the isense API.
                     else{
-                        upload_data += *x + string(",");
+                        upload_data += string("\"") + *x + string("\"") + string(",");
                     }
                 }
 
                 // We must only add the commas if there will be another field after this one.
-                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                if( it + 1 == fields_array.end() )
                 {
                     // No comma here
                     upload_data += string("]");
@@ -455,20 +475,13 @@ void iSENSE_Upload::format_upload_string()
 
                 break;
 
-/*
-        vector <string> numbers;
-        vector <string> text;
-        vector <string> latitude;
-        vector <string> longitude;
-*/
-
             case 2:
                 // We found a number, so run through that vector
                 for(x = numbers.begin(); x < numbers.end(); x++)
                 {
                     // We must only add the commas if there will be another data point after this one.
                     // In the following if statement I check to see if we hit the end of the vector.
-                    if( ( x != numbers.end() ) && ( x + 1 == numbers.end() ) )
+                    if( x + 1 == numbers.end() )
                     {
                         // We hit the end of the vector, so no comma for this point.
                         upload_data += *x;
@@ -481,7 +494,7 @@ void iSENSE_Upload::format_upload_string()
                 }
 
                 // We must only add the commas if there will be another field after this one.
-                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                if( it + 1 == fields_array.end() )
                 {
                     // No comma here
                     upload_data += string("]");
@@ -500,7 +513,7 @@ void iSENSE_Upload::format_upload_string()
                 {
                     // We must only add the commas if there will be another data point after this one.
                     // In the following if statement I check to see if we hit the end of the vector.
-                    if( ( x != text.end() ) && ( x + 1 == text.end() ) )
+                    if( x + 1 == text.end() )
                     {
                         // We hit the end of the vector, so no comma for this point.
                         upload_data += string("\"") + *x + string("\"");
@@ -513,7 +526,7 @@ void iSENSE_Upload::format_upload_string()
                 }
 
                 // We must only add the commas if there will be another field after this one.
-                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                if( it + 1 == fields_array.end() )
                 {
                     // No comma here
                     upload_data += string("]");

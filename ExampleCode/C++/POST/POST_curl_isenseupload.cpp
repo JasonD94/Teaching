@@ -15,7 +15,7 @@ using std::to_string;                       // REQUIRES C++11, make sure to enab
 // For picojson
 using namespace picojson;
 
-// Main, calls upload function. Uses ***something*** for JSON serialization / parsing.
+// Main, calls upload function. Uses picojson for JSON serialization / parsing.
 int main ()
 {
     // Example of using the class iSENSE_Upload
@@ -37,12 +37,6 @@ int main ()
 
     cout << "Please enter a title for the dataset: ";       // Gets the title
     getline(cin, title);
-
-    cout << "Please enter a bunch of letters: ";            // Gets a bunch of letters
-    getline(cin, letters);
-
-    cout << "Please enter a number: ";                      // Gets a number to upload to iSENSE
-    getline(cin, num);
 
     // Add project info / dataset info to the object
     test.set_project_ID(ID);

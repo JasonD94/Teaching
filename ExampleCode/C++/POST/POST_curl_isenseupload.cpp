@@ -21,11 +21,34 @@ int main ()
     // Example of using the class iSENSE_Upload
     iSENSE_Upload test;
 
+    // Get user input
+    string title;
+    string ID;
+    string key;
+    string letters;
+    string num;
+
+    // Get user input.
+    cout << "Please set the project ID for this dataset: ";     // Sets project ID
+    getline(cin, ID);
+
+    cout << "Please set a contributor key for this project: ";  // Set contributor key
+    getline(cin, key);
+
+    cout << "Please enter a title for the dataset: ";       // Gets the title
+    getline(cin, title);
+
+    cout << "Please enter a bunch of letters: ";            // Gets a bunch of letters
+    getline(cin, letters);
+
+    cout << "Please enter a number: ";                      // Gets a number to upload to iSENSE
+    getline(cin, num);
+
     // Add project info / dataset info to the object
-    test.set_project_ID("929");
-    test.set_project_title("this is a TEST");
+    test.set_project_ID(ID);
+    test.set_project_title(title);
     test.set_project_label("cURL");
-    test.set_contributor_key("123");
+    test.set_contributor_key(key);
 
     // Let's add a timestamp, but we're lazy so we'll use the function isenseupload provides for us.
     test.generate_timestamp();
@@ -56,9 +79,13 @@ int main ()
     test.GET_PROJ_FIELDS();
 
     // Try formatting the upload data string without uploading yet.
-    test.format_upload_string();
+    //test.format_upload_string();
+
+    // Let's try uploading now and see if it works.
+    test.POST_JSON_KEY();
 
     // DEBUG testing
+    cout << "\n";
     test.DEBUG();
 
     // In the future we should tell the user if this upload function was a success. Or if it failed - if it failed then why.

@@ -387,7 +387,7 @@ void iSENSE_Upload::format_upload_string()
     // Add the contributor key, label (name) and the data key.
     upload_data += string("\"contribution_key\":\"") + contributor_key + string("\",");
     upload_data += string("\"contributor_name\":\"") + contributor_label + string("\",");
-    upload_data += string("\"data\"{");
+    upload_data += string("\"data\":{");
 
     // Add each field, with its field ID and an array of all the data in its vector.
     // Will need to check each field ID's type and then add all of the strings in that vector.
@@ -409,7 +409,7 @@ void iSENSE_Upload::format_upload_string()
         object obj = it->get<object>();
 
         // Rather than outputting the field ID, store it in the upload string.
-        upload_data += string("\n") + obj["id"].to_str() + string("\":[");
+        upload_data += string("\"") + obj["id"].to_str() + string("\":[");
 
         /*
             This part will be important for POSTing. We will want to save the fields and know what type they are.
@@ -425,42 +425,121 @@ void iSENSE_Upload::format_upload_string()
         {
             case 1:
                 // We found a timestamp, so run through that vector
-                    for(x = timestamp.begin(); x < timestamp.end(); x++)
+                for(x = timestamp.begin(); x < timestamp.end(); x++)
+                {
+                    // We must only add the commas if there will be another data point after this one.
+                    // In the following if statement I check to see if we hit the end of the vector.
+                    if( ( x != timestamp.end() ) && ( x + 1 == timestamp.end() ) )
                     {
-                        if(timestamp.begin() != timestamp.end())
-                        {
-                            upload_data += *x + string(",");
-                        }
-                        else{
-                            upload_data += *x;
-                        }
+                        // We hit the end of the vector, so no comma for this point.
+                        upload_data += *x;
                     }
+                    // In this case, we add the comma as there will be another data point to add.
+                    // And commas must separate these for the isense API.
+                    else{
+                        upload_data += *x + string(",");
+                    }
+                }
+
+                // We must only add the commas if there will be another field after this one.
+                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                {
+                    // No comma here
+                    upload_data += string("]");
+                }
+                // In this case, we found the last field.
+                else{
+                    // Need one here, as there is another field after this.
                     upload_data += string("],");
+                }
 
                 break;
 
+/*
+        vector <string> numbers;
+        vector <string> text;
+        vector <string> latitude;
+        vector <string> longitude;
+*/
+
             case 2:
                 // We found a number, so run through that vector
+                for(x = numbers.begin(); x < numbers.end(); x++)
+                {
+                    // We must only add the commas if there will be another data point after this one.
+                    // In the following if statement I check to see if we hit the end of the vector.
+                    if( ( x != numbers.end() ) && ( x + 1 == numbers.end() ) )
+                    {
+                        // We hit the end of the vector, so no comma for this point.
+                        upload_data += *x;
+                    }
+                    // In this case, we add the comma as there will be another data point to add.
+                    // And commas must separate these for the isense API.
+                    else{
+                        upload_data += *x + string(",");
+                    }
+                }
+
+                // We must only add the commas if there will be another field after this one.
+                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                {
+                    // No comma here
+                    upload_data += string("]");
+                }
+                // In this case, we found the last field.
+                else{
+                    // Need one here, as there is another field after this.
+                    upload_data += string("],");
+                }
 
                 break;
 
             case 3:
                 // Text here
+                for(x = text.begin(); x < text.end(); x++)
+                {
+                    // We must only add the commas if there will be another data point after this one.
+                    // In the following if statement I check to see if we hit the end of the vector.
+                    if( ( x != text.end() ) && ( x + 1 == text.end() ) )
+                    {
+                        // We hit the end of the vector, so no comma for this point.
+                        upload_data += string("\"") + *x + string("\"");
+                    }
+                    // In this case, we add the comma as there will be another data point to add.
+                    // And commas must separate these for the isense API.
+                    else{
+                        upload_data += *x + string(",");
+                    }
+                }
 
+                // We must only add the commas if there will be another field after this one.
+                if( ( it != fields_array.begin() ) && ( it + 1 == fields_array.end() ) )
+                {
+                    // No comma here
+                    upload_data += string("]");
+                }
+                // In this case, we found the last field.
+                else{
+                    // Need one here, as there is another field after this.
+                    upload_data += string("],");
+                }
                 break;
 
             case 4:
                 // Latitude here
+                // Will add this later. Should be similar to the above cases.
 
                 break;
 
             case 5:
                 // Longitude here
+                // Will work on this later. Should be similar to the above cases.
 
                 break;
 
             default:
                 cout << "Error, why'd we get here?\n";
+
                 break;
         }
     }

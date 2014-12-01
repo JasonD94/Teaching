@@ -1,16 +1,16 @@
 #include <iostream>                   	// std::cout, std::cin
 #include <string>                   	// std::string, std::to_string;
 #include <curl/curl.h>                 	// cURL to make HTTP requests
-#include <time.h>                       // for time stamps
+#include <time.h>                            // for time stamps
 #include "isenseupload.h"            	// using isenseupload.h
-#include "../../../../picojson.h"       // May need to change the path for this if not in git repo
+#include "../../../../picojson.h"            // May need to change the path for this if not in git repo
 
 using std::cout;
 using std::cin;
 using std::string;
 using std::endl;
-using std::stringstream;                // for concating an int onto a string.
-using std::to_string;                   // REQUIRES C++11, make sure to enable with flag -std=c++11
+using std::stringstream;                  // for concating an int onto a string.
+using std::to_string;                       // REQUIRES C++11, make sure to enable with flag -std=c++11
 
 // For picojson
 using namespace picojson;
@@ -23,7 +23,7 @@ int main ()
 
     // Add project info / dataset info to the object
     test.set_project_ID("929");
-    test.set_project_title("TEST");
+    test.set_project_title("this is a TEST");
     test.set_project_label("cURL");
     test.set_contributor_key("123");
 

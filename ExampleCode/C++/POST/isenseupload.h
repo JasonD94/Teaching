@@ -1,8 +1,8 @@
 #include <iostream>
-#include <string>                       // std::string, std::to_string;
+#include <string>                         // std::string, std::to_string;
 #include <curl/curl.h>                  // cURL to make HTTP requests
-#include "../../../../picojson.h"       // May need to change the path for this if not in git repo
-#include <sstream>                      // stringstreams, converting ints to numbers
+#include "../../../../picojson.h"        // May need to change the path for this if not in git repo
+#include <sstream>                     // stringstreams, converting ints to numbers
 #include <time.h>                       // Timestamps
 #include <vector>                       // Vectors
 
@@ -119,12 +119,12 @@ class iSENSE_Upload
 
         // Data needed for processing the upload request
         string upload_URL;                      // URL to upload the JSON to
-        string get_URL;                         // URL to grab JSON from
+        string get_URL;                           // URL to grab JSON from
         string upload_data;                     // the upload string, in JSON
-        string contributor_label;               // Label for the contributor key. by default this is "cURL"
-        string contributor_key;                 // contributor key for the project
-        string title;                           // title for the dataset
-        string project_ID;                      // project ID of the project
+        string contributor_label;              // Label for the contributor key. by default this is "cURL"
+        string contributor_key;                // contributor key for the project
+        string title;                                 // title for the dataset
+        string project_ID;                        // project ID of the project
 };
 
 

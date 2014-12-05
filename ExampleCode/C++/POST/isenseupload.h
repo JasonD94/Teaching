@@ -6,6 +6,7 @@
 #include <ctime>                       // Timestamps
 #include <vector>                       // Vectors
 
+// To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::vector;
 using std::cout;
 using std::cin;
@@ -85,23 +86,41 @@ char* memfstrdup(MEMFILE* mf)
     At some point this will hold all the upload related stuff for iSENSE uploading in C++
     To do:
 
-    1)  POST JSON dataset.
-    2)  POST JSON appending to a dataset
-    3)  Upload with username / password
+    1) Check that you can upload to all projects, regardless of fields. (including several number fields/text fields)
+        - Should only be one lat / long per project
+        - Same with timestamp, double check.
+        - Just need vector of vector of numbers & text fields, and perhaps associate with a name.
+        - Such as "money" -> first number vector
+                    "temperature" -> second number vector
+                    etc
+    2) Append a dataset
+    3) Post using Username/Password
+    4) Verify U/P and Contributor keys work by testing them.
+    5) Pull down projects?
+    6)
+
+    Also a constructor that takes in project ID, Title, Label, Contributor key
+
+    Currently can:
+    1. Pull down fields
+    2. Submit to basic projects
+
+    Already setting proj ID, title, label(optional), contributor key
 */
 
 
 class iSENSE_Upload
 {
     public:
-        iSENSE_Upload();                                          // Default constructor
-        // Should make another constructor that takes in the below info in one go.
-        void set_project_ID(string proj_ID);                 // This function should be called by the user, and should set up all the fields and what not.
-        void set_project_title(string proj_title);           // The user should also set the project title
-        void set_project_label(string label);                // This one is optional, by default the label will be "cURL".
-        void set_contributor_key(string contr_key);     // User needs to set the contributor key they will be using
+        iSENSE_Upload();                                                // Default constructor
+        iSENSE_Upload(string proj_ID, string proj_title,     // Contructor with parameters.
+                                string label, string contr_key);
+        void set_project_ID(string proj_ID);                      // This function should be called by the user, and should set up all the fields and what not.
+        void set_project_title(string proj_title);                // The user should also set the project title
+        void set_project_label(string label);                    // This one is optional, by default the label will be "cURL".
+        void set_contributor_key(string contr_key);         // User needs to set the contributor key they will be using
 
-        void GET_PROJ_FIELDS();                                // Given a URL has been set, the fields will be pulled and put into the fields vector.
+        void GET_PROJ_FIELDS();                                    // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // These functions will push data back to the vectors.
         void timestamp_pushback(string new_timestamp);
@@ -130,8 +149,9 @@ class iSENSE_Upload
 
         // Data for the fields. We'll match them with the given field_array above.
         vector <string> timestamp;
-        vector <string> numbers;
-        vector <string> text;
+        vector <string> numbers;        // These two should become vector of vectors of strings.
+        vector <string> text;               // That way multiple number / text fields won't cause issues when pulling fields/uploading.
+                                                    // They should also probably be maps so that
         vector <string> latitude;
         vector <string> longitude;
 
@@ -146,6 +166,7 @@ class iSENSE_Upload
 };
 
 
+// Default constructor
 iSENSE_Upload::iSENSE_Upload()
 {
     // Set these to default values for future references
@@ -156,6 +177,17 @@ iSENSE_Upload::iSENSE_Upload()
     contributor_label = "LABEL";
     title = "TITLE";
     project_ID = "empty";
+}
+
+
+// Constructor with parameters
+iSENSE_Upload::iSENSE_Upload(string proj_ID, string proj_title,     // Contructor with parameters.
+                                                string label, string contr_key)
+{
+    set_project_ID(proj_ID);
+    set_project_title(proj_title);
+    set_project_label(label);
+    set_contributor_key(contr_key);
 }
 
 
@@ -444,6 +476,8 @@ void iSENSE_Upload::format_upload_string()
         switch(type)
         {
             case 1:
+                // This should be turned into a function and it would probably be way easier.
+
                 // We found a timestamp, so run through that vector
                 for(x = timestamp.begin(); x < timestamp.end(); x++)
                 {
@@ -560,6 +594,38 @@ void iSENSE_Upload::format_upload_string()
     // Add the closing bracket to the data object/the upload object
     upload_data += string("}}");
 }
+
+
+/*
+fields_pushback(VECTOR)
+    for(x = timestamp.begin(); x < timestamp.end(); x++)
+    {
+        // We must only add the commas if there will be another data point after this one.
+        // In the following if statement I check to see if we hit the end of the vector.
+        if( x + 1 == timestamp.end() )
+        {
+            // We hit the end of the vector, so no comma for this point.
+            upload_data += string("\"") + *x + string("\"");
+        }
+        // In this case, we add the comma as there will be another data point to add.
+        // And commas must separate these for the isense API.
+        else{
+            upload_data += string("\"") + *x + string("\"") + string(",");
+        }
+    }
+
+    // We must only add the commas if there will be another field after this one.
+    if( it + 1 == fields_array.end() )
+    {
+        // No comma here
+        upload_data += string("]");
+    }
+    // In this case, we found the last field.
+    else{
+        // Need one here, as there is another field after this.
+        upload_data += string("],");
+    }
+*/
 
 
 // Call this function to dump all the data in the given object.

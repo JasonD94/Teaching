@@ -1,11 +1,11 @@
 #include <iostream>
-#include <string>                        // std::string, std::to_string;
-#include <ctime>                        // Timestamps
+#include <string>                // std::string, std::to_string;
+#include <ctime>                // Timestamps
 #include <vector>
 #include <map>
-#include <curl/curl.h>                  // cURL to make HTTP requests
-#include "picojson.h"        // picojson for usin JSON easily.
-#include "memfile.h"        // picojson/curl uses this for temp files
+#include <curl/curl.h>          // cURL to make HTTP requests
+#include "picojson.h"            // picojson for usin JSON easily.
+#include "memfile.h"            // picojson/curl uses this for temp files
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::vector;
@@ -83,11 +83,12 @@ class iSENSE_Upload
         vector <string> timestamp;
         vector <string> numbers;        // These two should become vector of vectors of strings.
         vector <string> text;               // That way multiple number / text fields won't cause issues when pulling fields/uploading.
-                                                    // They should also probably be maps so that
+                                                      // They should also probably be maps so that
         vector <string> latitude;
         vector <string> longitude;
 
         // Data needed for processing the upload request
+        bool usingDev;                            // Whether the user wants iSENSE or rSENSE
         string upload_URL;                      // URL to upload the JSON to
         string get_URL;                           // URL to grab JSON from
         string upload_data;                     // the upload string, in JSON
@@ -378,7 +379,9 @@ void iSENSE_Upload::format_upload_string()
 
     // Grab all the fields using an iterator. Similar to printing them all out below in the debug function.
     array::iterator it;
-    vector<string>::iterator x;     // For going through the vectors
+
+    // Pointer to one of the 5 vectors, for using a function vs writing the same thing 5 times.
+    vector<string> *vect;
 
     // Check and see if the fields object is empty
     if(fields.is<picojson::null>() == true)
@@ -408,42 +411,87 @@ void iSENSE_Upload::format_upload_string()
         switch(type)
         {
             case 1:
-                // This should be turned into a function and it would probably be way easier.
-
-                // We found a timestamp, so run through that vector
-                for(x = timestamp.begin(); x < timestamp.end(); x++)
-                {
-                    // We must only add the commas if there will be another data point after this one.
-                    // In the following if statement I check to see if we hit the end of the vector.
-                    if( x + 1 == timestamp.end() )
-                    {
-                        // We hit the end of the vector, so no comma for this point.
-                        upload_data += string("\"") + *x + string("\"");
-                    }
-                    // In this case, we add the comma as there will be another data point to add.
-                    // And commas must separate these for the isense API.
-                    else{
-                        upload_data += string("\"") + *x + string("\"") + string(",");
-                    }
-                }
-
-                // We must only add the commas if there will be another field after this one.
-                if( it + 1 == fields_array.end() )
-                {
-                    // No comma here
-                    upload_data += string("]");
-                }
-                // In this case, we found the last field.
-                else{
-                    // Need one here, as there is another field after this.
-                    upload_data += string("],");
-                }
+                // Found a timestamp field
+                vect = timestamp;
+                format_data(vect, it, false);
 
                 break;
 
             case 2:
                 // We found a number, so run through that vector
-                for(x = numbers.begin(); x < numbers.end(); x++)
+                vect = numbers;
+                format_data(vect, it, true);
+
+                break;
+
+            case 3:
+                // Found a text field
+                vect = text;
+                format_data(vect, it, false);
+                break;
+
+            case 4:
+                // Latitude here
+                vect = latitude;
+                format_data(vect, it, false);
+
+                break;
+
+            case 5:
+                // Longitude here
+                vect = longitude;
+                format_data(vect, it, false);
+                break;
+
+            default:
+                cout << "Error, why'd we get here?\n";
+
+                break;
+        }
+    }
+
+    // Add the closing bracket to the data object/the upload object
+    upload_data += string("}}");
+}
+
+
+// This makes the switch above shorter, since I reuse this code for all 5 types of data.
+void format_data(vector<string> *vect, array::iterator it, bool isnum)
+{
+    vector<string>::iterator x;    // For going through the vector
+
+    if(isnum == false)
+    {
+        for(x = vect.begin(); x < vect.end(); x++)
+        {
+            // We must only add the commas if there will be another data point after this one.
+            // In the following if statement I check to see if we hit the end of the vector.
+            if( x + 1 == vect.end() )
+            {
+                // We hit the end of the vector, so no comma for this point.
+                upload_data += string("\"") + *x + string("\"");
+            }
+            // In this case, we add the comma as there will be another data point to add.
+            // And commas must separate these for the isense API.
+            else{
+                upload_data += string("\"") + *x + string("\"") + string(",");
+            }
+        }
+
+        // We must only add the commas if there will be another field after this one.
+        if( it + 1 == fields_array.end() )
+        {
+            // No comma here
+            upload_data += string("]");
+        }
+        // In this case, we found the last field.
+        else{
+            // Need one here, as there is another field after this.
+            upload_data += string("],");
+        }
+    }
+    else{
+        for(x = numbers.begin(); x < numbers.end(); x++)
                 {
                     // We must only add the commas if there will be another data point after this one.
                     // In the following if statement I check to see if we hit the end of the vector.
@@ -470,94 +518,8 @@ void iSENSE_Upload::format_upload_string()
                     // Need one here, as there is another field after this.
                     upload_data += string("],");
                 }
-
-                break;
-
-            case 3:
-                // Text here
-                for(x = text.begin(); x < text.end(); x++)
-                {
-                    // We must only add the commas if there will be another data point after this one.
-                    // In the following if statement I check to see if we hit the end of the vector.
-                    if( x + 1 == text.end() )
-                    {
-                        // We hit the end of the vector, so no comma for this point.
-                        upload_data += string("\"") + *x + string("\"");
-                    }
-                    // In this case, we add the comma as there will be another data point to add.
-                    // And commas must separate these for the isense API.
-                    else{
-                        upload_data += *x + string(",");
-                    }
-                }
-
-                // We must only add the commas if there will be another field after this one.
-                if( it + 1 == fields_array.end() )
-                {
-                    // No comma here
-                    upload_data += string("]");
-                }
-                // In this case, we found the last field.
-                else{
-                    // Need one here, as there is another field after this.
-                    upload_data += string("],");
-                }
-                break;
-
-            case 4:
-                // Latitude here
-                // Will add this later. Should be similar to the above cases.
-
-                break;
-
-            case 5:
-                // Longitude here
-                // Will work on this later. Should be similar to the above cases.
-
-                break;
-
-            default:
-                cout << "Error, why'd we get here?\n";
-
-                break;
-        }
     }
-
-    // Add the closing bracket to the data object/the upload object
-    upload_data += string("}}");
 }
-
-
-/*
-fields_pushback(VECTOR)
-    for(x = timestamp.begin(); x < timestamp.end(); x++)
-    {
-        // We must only add the commas if there will be another data point after this one.
-        // In the following if statement I check to see if we hit the end of the vector.
-        if( x + 1 == timestamp.end() )
-        {
-            // We hit the end of the vector, so no comma for this point.
-            upload_data += string("\"") + *x + string("\"");
-        }
-        // In this case, we add the comma as there will be another data point to add.
-        // And commas must separate these for the isense API.
-        else{
-            upload_data += string("\"") + *x + string("\"") + string(",");
-        }
-    }
-
-    // We must only add the commas if there will be another field after this one.
-    if( it + 1 == fields_array.end() )
-    {
-        // No comma here
-        upload_data += string("]");
-    }
-    // In this case, we found the last field.
-    else{
-        // Need one here, as there is another field after this.
-        upload_data += string("],");
-    }
-*/
 
 
 // Call this function to dump all the data in the given object.

@@ -1,9 +1,10 @@
 #include <iostream>
-#include <string>                         // std::string, std::to_string;
+#include <string>                        // std::string, std::to_string;
 #include <curl/curl.h>                  // cURL to make HTTP requests
-#include "../../../../picojson.h"        // May need to change the path for this if not in git repo
+#include "picojson.h"     // May need to change the path for this if not in git repo
+#include "memfile.h"
 #include <sstream>                     // stringstreams, converting ints to numbers
-#include <ctime>                       // Timestamps
+#include <ctime>                        // Timestamps
 #include <vector>                       // Vectors
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
@@ -16,71 +17,6 @@ using std::to_string;                   // for converting an int onto a string.
 
 // For picojson
 using namespace picojson;
-
-// This is from the picojson example page
-// I use it to save the JSON from iSENSE to memory (temporary)
-// See the following URL for an example:
-// https://github.com/kazuho/picojson/blob/master/examples/github-issues.cc
-typedef struct {
-    char* data;       // response data from server
-    size_t size;        // response size of data
-} MEMFILE;
-
-MEMFILE*  memfopen() {
-    MEMFILE* mf = (MEMFILE*) malloc(sizeof(MEMFILE));
-    mf->data = NULL;
-    mf->size = 0;
-    return mf;
-}
-
-void memfclose(MEMFILE* mf) {
-    // Double check to make sure that mf exists.
-    if(mf == NULL)
-    {
-        return;
-    }
-
-    // OK to free the char array
-    if (mf != NULL && mf->data)
-    {
-        free(mf->data);
-    }
-
-    // And OK to free the structure
-    free(mf);
-}
-
-size_t memfwrite(char* ptr, size_t size, size_t nmemb, void* stream) {
-    MEMFILE* mf = (MEMFILE*) stream;
-    int block = size * nmemb;
-
-    if (!mf->data)
-    {
-        mf->data = (char*) malloc(block);
-    }
-    else
-    {
-        mf->data = (char*) realloc(mf->data, mf->size + block);
-    }
-
-    if (mf->data)
-    {
-        memcpy(mf->data + mf->size, ptr, block);
-        mf->size += block;
-    }
-
-    return block;
-}
-
-char* memfstrdup(MEMFILE* mf)
-{
-    char* buf = (char*)malloc(mf->size + 1);
-    memcpy(buf, mf->data, mf->size);
-    buf[mf->size] = 0;
-
-    return buf;
-}
-
 
 /*
     At some point this will hold all the upload related stuff for iSENSE uploading in C++
@@ -115,6 +51,7 @@ class iSENSE_Upload
         iSENSE_Upload();                                                // Default constructor
         iSENSE_Upload(string proj_ID, string proj_title,     // Contructor with parameters.
                                 string label, string contr_key);
+
         void set_project_ID(string proj_ID);                      // This function should be called by the user, and should set up all the fields and what not.
         void set_project_title(string proj_title);                // The user should also set the project title
         void set_project_label(string label);                    // This one is optional, by default the label will be "cURL".

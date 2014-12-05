@@ -78,3 +78,6 @@ target/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# I want picojson.h to be in an include directory, but not show up on github
+*picojson.h

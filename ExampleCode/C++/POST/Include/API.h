@@ -1,11 +1,11 @@
 #include <iostream>
 #include <string>                        // std::string, std::to_string;
-#include <curl/curl.h>                  // cURL to make HTTP requests
-#include "picojson.h"     // May need to change the path for this if not in git repo
-#include "memfile.h"
-#include <sstream>                     // stringstreams, converting ints to numbers
 #include <ctime>                        // Timestamps
-#include <vector>                       // Vectors
+#include <vector>
+#include <map>
+#include <curl/curl.h>                  // cURL to make HTTP requests
+#include "picojson.h"        // picojson for usin JSON easily.
+#include "memfile.h"        // picojson/curl uses this for temp files
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::vector;
@@ -13,37 +13,13 @@ using std::cout;
 using std::cin;
 using std::string;
 using std::endl;
-using std::to_string;                   // for converting an int onto a string.
+using std::to_string;
 
 // For picojson
 using namespace picojson;
 
-/*
-    At some point this will hold all the upload related stuff for iSENSE uploading in C++
-    To do:
-
-    1) Check that you can upload to all projects, regardless of fields. (including several number fields/text fields)
-        - Should only be one lat / long per project
-        - Same with timestamp, double check.
-        - Just need vector of vector of numbers & text fields, and perhaps associate with a name.
-        - Such as "money" -> first number vector
-                    "temperature" -> second number vector
-                    etc
-    2) Append a dataset
-    3) Post using Username/Password
-    4) Verify U/P and Contributor keys work by testing them.
-    5) Pull down projects?
-    6)
-
-    Also a constructor that takes in project ID, Title, Label, Contributor key
-
-    Currently can:
-    1. Pull down fields
-    2. Submit to basic projects
-
-    Already setting proj ID, title, label(optional), contributor key
-*/
-
+const string devURL = "http://rsense-dev.cs.uml.edu/api/v1";
+const string liveURL = "http://isenseproject.org/api/v1";
 
 class iSENSE_Upload
 {
@@ -52,12 +28,14 @@ class iSENSE_Upload
         iSENSE_Upload(string proj_ID, string proj_title,     // Contructor with parameters.
                                 string label, string contr_key);
 
-        void set_project_ID(string proj_ID);                      // This function should be called by the user, and should set up all the fields and what not.
+        // Similar to the constructor with parameters.
+        void set_project_all(string proj_ID, string proj_title,
+                                      string label, string contr_key);
+
+        void set_project_ID(string proj_ID);                      // This function should set up all the fields
         void set_project_title(string proj_title);                // The user should also set the project title
         void set_project_label(string label);                    // This one is optional, by default the label will be "cURL".
         void set_contributor_key(string contr_key);         // User needs to set the contributor key they will be using
-
-        void GET_PROJ_FIELDS();                                    // Given a URL has been set, the fields will be pulled and put into the fields vector.
 
         // These functions will push data back to the vectors.
         void timestamp_pushback(string new_timestamp);
@@ -67,15 +45,32 @@ class iSENSE_Upload
         void latitude_pushback(string new_latitude);
         void longitude_pushback(string new_longitude);
 
-        // Functions for uploading data to rSENSE
+        // Helper functions for uploading data to rSENSE
         void set_URL(string s_URL);             // Set the URL for this object
         void format_upload_string();            // This formats the upload string
-        void POST_JSON_KEY();                    // Post using contributor key (will not worry about Username/Password)
+
+        // iSENSE API functions
+        void GET_PROJ_FIELDS();                  // Given a URL has been set, the fields will be pulled and put into the fields vector.
+        void POST_JSON_KEY();                    // Post using contributor key
+
+        /*  Future functions to be implemented at a later date.
+        void POST_JSON_USER();                  // Post using a username / password
+        void POST_APPEND_KEY();
+        void POST_APPEND_USER();
+        void POST_EDIT_KEY();
+        void POST_EDIT_USER();
+        void POST_FIELDS();
+        void POST_PROJECTS();
+        // is it possible to post media objects? or even bother?
+
+        void GET_USER();                            // Check's if a username / password is valid
+        void GET_PROJECTS(string search_term);
+        void GET_DATASET_ID();
+        void GET_FIELDS_ID();
+        */
 
         // for debugging, dump all the variables in here.
         void DEBUG();
-
-        string devURL = "http://rsense-dev.cs.uml.edu/api/v1";
 
     private:
 

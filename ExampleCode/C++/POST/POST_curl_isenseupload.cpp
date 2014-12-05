@@ -1,9 +1,10 @@
-#include <iostream>                   	// std::cout, std::cin
-#include <string>                   	// std::string, std::to_string;
-#include <curl/curl.h>                 	// cURL to make HTTP requests
-#include <time.h>                            // for time stamps
-#include "isenseupload.h"            	// using isenseupload.h
-#include "../../../../picojson.h"            // May need to change the path for this if not in git repo
+#include <iostream>                  // std::cout, std::cin
+#include <string>                       // std::string, std::to_string;
+#include <time.h>                      // for time stamps
+#include <curl/curl.h>                 // cURL to make HTTP requests
+#include "Include/API.h"                            // API class
+#include "Include/picojson.h"        // picojson for usin JSON easily.
+#include "Include/memfile.h"        // picojson/curl uses this for temp files
 
 using std::cout;
 using std::cin;

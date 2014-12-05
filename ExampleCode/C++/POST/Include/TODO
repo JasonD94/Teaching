@@ -1,0 +1,23 @@
+    At some point this will hold all the upload related stuff for iSENSE uploading in C++
+    To do:
+
+    1) Check that you can upload to all projects, regardless of fields. (including several number fields/text fields)
+        - Should only be one lat / long per project
+        - Same with timestamp, double check.
+        - Just need vector of vector of numbers & text fields, and perhaps associate with a name.
+        - Such as "money" -> first number vector
+                    "temperature" -> second number vector
+                    etc
+    2) Append a dataset
+    3) Post using Username/Password
+    4) Verify U/P and Contributor keys work by testing them.
+    5) Pull down projects?
+    6)
+
+    Also a constructor that takes in project ID, Title, Label, Contributor key
+
+    Currently can:
+    1. Pull down fields
+    2. Submit to basic projects
+
+    Already setting proj ID, title, label(optional), contributor key

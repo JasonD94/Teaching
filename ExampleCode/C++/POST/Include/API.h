@@ -75,6 +75,7 @@ class iSENSE_Upload
     private:
 
         // Holds the JSON we grab from the given project ID
+        object upload_data;                     // the upload string, in JSON
         value json_data;
         value fields;
         array fields_array;
@@ -91,7 +92,6 @@ class iSENSE_Upload
         bool usingDev;                            // Whether the user wants iSENSE or rSENSE
         string upload_URL;                      // URL to upload the JSON to
         string get_URL;                           // URL to grab JSON from
-        string upload_data;                     // the upload string, in JSON
         string contributor_label;              // Label for the contributor key. by default this is "cURL"
         string contributor_key;                // contributor key for the project
         string title;                                 // title for the dataset
@@ -367,6 +367,21 @@ void iSENSE_Upload::POST_JSON_KEY()
 void iSENSE_Upload::format_upload_string()
 {
     // Add the title + the correct formatting
+    upload_data["title"] = value(title);
+    upload_data["contribution_key"] = value(contributor_key);
+    upload_data["contributor_name"] = value(contributor_label);
+
+    // Time to make another object to hold all the fields / data.
+    object fields_data;
+    array arg;
+    arg = value(1)
+
+    fields_data[1234] = "[1,2,3,4,5]"
+
+    // Add the data object to the upload_data object
+    upload_data["data"] = value(data);
+
+    /*
     upload_data =  string("{\"title\":\"") + title + string("\",");
 
     // Add the contributor key, label (name) and the data key.
@@ -388,7 +403,7 @@ void iSENSE_Upload::format_upload_string()
     {
         return;
     }
-
+    */
     // We made an iterator above, that will let us run through the 3 fields
     for(it =fields_array.begin(); it != fields_array.end(); it++)
     {

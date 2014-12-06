@@ -77,7 +77,7 @@ int main ()
     //test.format_upload_string();
 
     // Let's try uploading now and see if it works.
-    test.POST_JSON_KEY();
+    //test.POST_JSON_KEY();
 
     // DEBUG testing
     cout << "\n";

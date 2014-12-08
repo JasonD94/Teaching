@@ -82,9 +82,9 @@ class iSENSE_Upload
 
         // Data for the fields. We'll match them with the given field_array above.
         vector <string> timestamp;
-        vector <string> numbers;        // These two should become vector of vectors of strings.
-        vector <string> text;               // That way multiple number / text fields won't cause issues when pulling fields/uploading.
-                                                      // They should also probably be maps so that
+        vector <string> numbers;              // These two should become vector of vectors of strings.
+        vector <string> text;                     // That way multiple number / text fields won't cause issues when pulling fields/uploading.
+                                                            // They should also probably be maps so that
         vector <string> latitude;
         vector <string> longitude;
 
@@ -116,6 +116,16 @@ iSENSE_Upload::iSENSE_Upload()
 // Constructor with parameters
 iSENSE_Upload::iSENSE_Upload(string proj_ID, string proj_title,     // Contructor with parameters.
                                                 string label, string contr_key)
+{
+    set_project_ID(proj_ID);
+    set_project_title(proj_title);
+    set_project_label(label);
+    set_contributor_key(contr_key);
+}
+
+// Similar to the constructor with parameters, but can be called at anytime to
+// set up the upload object.
+void set_project_all(string proj_ID, string proj_title, string label, string contr_key)
 {
     set_project_ID(proj_ID);
     set_project_title(proj_title);

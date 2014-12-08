@@ -2,6 +2,7 @@
 //#include "Include/API.h"               // API class
 #include "Include/picojson.h"        // picojson for usin JSON easily.
 #include "Include/memfile.h"        // picojson/curl uses this for temp files
+#include "vector"
 
 using namespace std;
 
@@ -14,6 +15,9 @@ using namespace picojson;
 
 int main()
 {
+    // Hmm, this works!
+    // This suggests a simple way of uploading to any dataset on iSENSE!
+
     object upload_data;                     // the upload string, in JSON
 
     string title = "title";
@@ -34,5 +38,17 @@ int main()
 
     upload_data["data"] = value(data);
 
-    cout << upload_data.serialize();
+    cout << endl << value(upload_data).serialize() << "\n\n";
+
+    // Going to test picojson array right now.
+    object arg_data;
+
+    arg_data[0] = value(1);
+    arg_data[1] = value(2);
+    arg_data[2] = value(3);
+
+    upload_data["arg_data"] = value(arg_data);
+
+    cout << value(upload_data).serialize() << "\n\n";
+
 }

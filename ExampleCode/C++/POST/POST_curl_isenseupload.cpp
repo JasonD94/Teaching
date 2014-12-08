@@ -74,10 +74,10 @@ int main ()
     test.GET_PROJ_FIELDS();
 
     // Try formatting the upload data string without uploading yet.
-    //test.format_upload_string();
+    test.format_upload_string();
 
     // Let's try uploading now and see if it works.
-    //test.POST_JSON_KEY();
+    test.POST_JSON_KEY();
 
     // DEBUG testing
     cout << "\n";

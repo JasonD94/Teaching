@@ -41,11 +41,11 @@ int main()
     cout << endl << value(upload_data).serialize() << "\n\n";
 
     // Going to test picojson array right now.
-    object arg_data;
+    value::array arg_data;
 
-    arg_data[0] = value(1);
-    arg_data[1] = value(2);
-    arg_data[2] = value(3);
+    arg_data.push_back(value(double(1)));
+    arg_data.push_back(value(double(2)));
+    arg_data.push_back(value(double(3)));
 
     upload_data["arg_data"] = value(arg_data);
 

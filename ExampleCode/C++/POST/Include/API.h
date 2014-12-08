@@ -50,7 +50,7 @@ class iSENSE_Upload
         void format_upload_string();            // This formats the upload string
 
         void format_data(vector<string> *vect,      // This formats one FIELD ID : DATA pairs
-                                  array::iterator it);
+                                  array::iterator it, string field_ID);
 
         // iSENSE API functions
         void GET_PROJ_FIELDS();                  // Given a URL has been set, the fields will be pulled and put into the fields vector.
@@ -111,7 +111,7 @@ iSENSE_Upload::iSENSE_Upload()
     // Set these to default values for future references
     upload_URL = "URL";
     get_URL = "URL";
-    upload_data = "upload";
+    //upload_data = "upload";
     contributor_key = "KEY";
     contributor_label = "LABEL";
     title = "TITLE";
@@ -131,7 +131,7 @@ iSENSE_Upload::iSENSE_Upload(string proj_ID, string proj_title,     // Contructo
 
 // Similar to the constructor with parameters, but can be called at anytime to
 // set up the upload object.
-void set_project_all(string proj_ID, string proj_title, string label, string contr_key)
+void iSENSE_Upload::set_project_all(string proj_ID, string proj_title, string label, string contr_key)
 {
     set_project_ID(proj_ID);
     set_project_title(proj_title);
@@ -347,7 +347,7 @@ void iSENSE_Upload::POST_JSON_KEY()
         curl_easy_setopt(curl, CURLOPT_URL, upload_URL.c_str());
 
         // POST data. Upload will be the string with all the data.
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, upload_data.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (value(upload_data).serialize()).c_str());
 
         // JSON Headers
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -428,35 +428,35 @@ void iSENSE_Upload::format_upload_string()
         {
             case 1:
                 // Found a timestamp field
-                vect = timestamp;
-                format_data(vect, it);
+                vect = &timestamp;
+                format_data(vect, it, field_ID);
 
                 break;
 
             case 2:
                 // We found a number, so run through that vector
-                vect = numbers;
-                format_data(vect, it);
+                vect = &numbers;
+                format_data(vect, it, field_ID);
 
                 break;
 
             case 3:
                 // Found a text field
-                vect = text;
-                format_data(vect, it);
+                vect = &text;
+                format_data(vect, it, field_ID);
                 break;
 
             case 4:
                 // Latitude here
-                vect = latitude;
-                format_data(vect, it);
+                vect = &latitude;
+                format_data(vect, it, field_ID);
 
                 break;
 
             case 5:
                 // Longitude here
-                vect = longitude;
-                format_data(vect, it);
+                vect = &longitude;
+                format_data(vect, it, field_ID);
                 break;
 
             default:
@@ -473,17 +473,19 @@ void iSENSE_Upload::format_upload_string()
 
 
 // This makes the switch above shorter, since I reuse this code for all 5 types of data.
-void iSENSE_Upload::format_data(vector<string> *vect, array::iterator it)
+void iSENSE_Upload::format_data(vector<string> *vect, array::iterator it, string field_ID)
 {
     vector<string>::iterator x;    // For going through the vector
-    array data;
+    value::array data;                  // Using a picojson::value::array, basically a vector but represents a json array.
 
-    for(x = vect.begin(); x < vect.end(); x++)
+    // First we push all the vector data into a json array.
+    for(x = vect -> begin(); x < vect -> end(); x++)
     {
-        data.pushback(x);
+        data.push_back(value(*x));
     }
 
-
+    // Now we push the json array to the upload_data object.
+    fields_data[field_ID] = value(data);
 }
 
 
@@ -496,7 +498,7 @@ void iSENSE_Upload::DEBUG()
     cout << "Contributor Label = " << contributor_label << endl;
     cout << "Upload URL: " << upload_URL << "\n";
     cout << "GET URL: " << get_URL << "\n\n";
-    cout << "Upload Data: " << upload_data << "\n\n";
+    cout << "Upload Data: " << value(upload_data).serialize() << "\n\n";
     cout << "GET Data: " << json_data.serialize() << "\n\n";
     cout << "Field Data: " << fields.serialize() << "\n\n";
 

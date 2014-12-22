@@ -57,8 +57,8 @@ class iSENSE
     void format_data(vector<string> *vect, array::iterator it, string field_ID);
 
     // iSENSE API functions
-    void GET_PROJ_FIELDS();                  // Given a URL has been set, the fields will be pulled and put into the fields vector.
-    void POST_JSON_KEY();                    // Post using contributor key
+    void GET_PROJ_FIELDS();          // Given a URL has been set, the fields will be pulled and put into the fields vector.
+    void POST_JSON_KEY();            // Post using contributor key
 
     /*  Future functions to be implemented at a later date.
     void POST_JSON_USER();                  // Post using a username / password
@@ -132,6 +132,7 @@ iSENSE::iSENSE(string proj_ID, string proj_title,     // Contructor with paramet
   set_project_label(label);
   set_contributor_key(contr_key);
 }
+
 
 // Similar to the constructor with parameters, but can be called at anytime to
 // set up the upload object.

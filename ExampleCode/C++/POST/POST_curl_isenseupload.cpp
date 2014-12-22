@@ -1,10 +1,6 @@
 #include <iostream>                  // std::cout, std::cin
-#include <string>                       // std::string, std::to_string;
-#include <time.h>                      // for time stamps
-#include <curl/curl.h>                 // cURL to make HTTP requests
-#include "Include/API.h"               // API class
-#include "Include/picojson.h"        // picojson for usin JSON easily.
-#include "Include/memfile.h"        // picojson/curl uses this for temp files
+#include <string>                    // std::string, std::to_string;
+#include "Include/API.h"             // API class
 
 using std::cout;
 using std::cin;
@@ -20,7 +16,7 @@ using namespace picojson;
 int main ()
 {
     // Example of using the class iSENSE_Upload
-    iSENSE_Upload test;
+    iSENSE test;
 
     // Get user input
     string title;
@@ -46,27 +42,24 @@ int main ()
     test.set_contributor_key(key);
 
     // Let's add a timestamp, but we're lazy so we'll use the function isenseupload provides for us.
-    test.generate_timestamp();
+    //test.generate_timestamp();
 
     // Let's also push some stuff back to the other vectors.
     /*
-	Olsen hall
+        Olsen hall
         42.654761, -71.326674
     */
-    test.numbers_pushback("123456789");
-    test.text_pushback("THIS IS A STRING OF TEXT");
-    test.latitude_pushback("42.654761");
-    test.latitude_pushback("42.654761");
-    test.latitude_pushback("42.654761");
-    test.longitude_pushback("-71.326674");
-    test.longitude_pushback("-71.326674");
-    test.longitude_pushback("-71.326674");
+    test.push_back("Number", "123456789");
+    test.push_back("Text", "THIS IS A STRING OF TEXT");
+    test.push_back("Latitude", "42.654761");
+    test.push_back("Longitude", "-71.326674");
+
 
     // I wonder if we can push back a bunch of numbers?
     for(int i = 0; i < 10; i++)
     {
         // Make sure to use "to_string" to convert an int/double/float/etc to a string!
-        test.numbers_pushback(to_string(i));
+        test.push_back("Number", to_string(i));
     }
 
     // At some point make it possible to add data / fields

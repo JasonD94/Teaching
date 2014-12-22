@@ -50,10 +50,12 @@ int main ()
         42.654761, -71.326674
     */
     test.push_back("Number", "123456789");
-    test.push_back("Text", "THIS IS A STRING OF TEXT");
+    test.push_back("Text", "THIS");
     test.push_back("Latitude", "42.654761");
     test.push_back("Longitude", "-71.326674");
 
+    string timestamp = test.generate_timestamp();
+    test.push_back("Timestamp", timestamp);
 
     // I wonder if we can push back a bunch of numbers?
     for(int i = 0; i < 10; i++)

@@ -76,7 +76,7 @@ void upload_to_rsense(string title, int num, string letters, time_t timestamp)
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // Verbose debug output - turn this on if you are having problems. It will spit out a ton of information.
-        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
         cout << "rSENSE says: \n";
 

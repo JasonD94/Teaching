@@ -6,8 +6,8 @@ using std::cout;
 using std::cin;
 using std::string;
 using std::endl;
-using std::stringstream;                  // for concating an int onto a string.
-using std::to_string;                       // REQUIRES C++11, make sure to enable with flag -std=c++11
+using std::stringstream;
+using std::to_string;
 
 // For picojson
 using namespace picojson;
@@ -15,15 +15,11 @@ using namespace picojson;
 // Main, calls upload function. Uses picojson for JSON serialization / parsing.
 int main ()
 {
-    // Example of using the class iSENSE_Upload
+    // Example of using the iSENSE class
     iSENSE test;
 
     // Get user input
-    string title;
-    string ID;
-    string key;
-    string letters;
-    string num;
+    string title, ID, key, letters, num;
 
     // Get user input.
     cout << "Please set the project ID for this dataset: ";     // Sets project ID
@@ -41,9 +37,6 @@ int main ()
     test.set_project_label("cURL");
     test.set_contributor_key(key);
 
-    // Let's add a timestamp, but we're lazy so we'll use the function isenseupload provides for us.
-    //test.generate_timestamp();
-
     // Let's also push some stuff back to the other vectors.
     /*
         Olsen hall
@@ -54,30 +47,42 @@ int main ()
     test.push_back("Latitude", "42.654761");
     test.push_back("Longitude", "-71.326674");
 
+    // Let's add a timestamp, but we're lazy so we'll use the function that the class provides for us.
     string timestamp = test.generate_timestamp();
     test.push_back("Timestamp", timestamp);
 
-    // I wonder if we can push back a bunch of numbers?
+    // Example of pushing numbers back into the object.
     for(int i = 0; i < 10; i++)
     {
         // Make sure to use "to_string" to convert an int/double/float/etc to a string!
         test.push_back("Number", to_string(i));
     }
 
-    // At some point make it possible to add data / fields
     // Try grabbing fields. Hope this works!
     test.GET_PROJ_FIELDS();
 
     // Try formatting the upload data string without uploading yet.
     test.format_upload_string();
 
-    // Let's try uploading now and see if it works.
+    // Test to see if it worked.
+    test.debug();
+
+    char ans;
+
+    do{
+      cout << "Does the data look alright to you? (enter y/n) -> ";
+      cin >> ans;
+    }while(ans != 'y' || ans != 'n');
+
+    if(ans == 'n')
+    {
+      cout << "User chose not to upload. Quitting instead.\n";
+      return;
+    }
+
+    cout << "Uploading to rSENSE.\n";
     test.POST_JSON_KEY();
 
-    // DEBUG testing
-    cout << "\n";
-    test.DEBUG();
-
-    // In the future we should tell the user if this upload function was a success. Or if it failed - if it failed then why.
+    // In the future we should tell the user if this upload function was a success. Or if it failed then why.
     return 0;
 }

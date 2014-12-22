@@ -1,11 +1,11 @@
 #include <iostream>
-#include <string>                // std::string, std::to_string;
-#include <ctime>                // Timestamps
+#include <string>                 // std::string, std::to_string;
+#include <ctime>                  // Timestamps
 #include <vector>
 #include <map>
-#include <curl/curl.h>          // cURL to make HTTP requests
-#include "picojson.h"            // picojson for usin JSON easily.
-#include "memfile.h"            // picojson/curl uses this for temp files
+#include <curl/curl.h>            // cURL to make HTTP requests
+#include "picojson.h"             // picojson for using JSON easily.
+#include "memfile.h"              // picojson/curl uses this for temp files
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::map;
@@ -19,6 +19,7 @@ using std::to_string;
 // For picojson
 using namespace picojson;
 
+// Constants for the rest of the class
 const string devURL = "http://rsense-dev.cs.uml.edu/api/v1";
 const string liveURL = "http://isenseproject.org/api/v1";
 

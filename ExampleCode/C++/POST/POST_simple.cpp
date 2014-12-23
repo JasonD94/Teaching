@@ -1,14 +1,14 @@
-#include <iostream>             // std::cout, std::cin
-#include <string>             	// std::string, std::to_string;
 #include <curl/curl.h>        	// cURL to make HTTP requests
-#include <time.h>          	// Timestamps
-#include <sstream>		// stringstreams, converting ints to numbers
+#include <iostream>             // std::cout, std::cin
+#include <sstream>		          // stringstreams, converting ints to numbers
+#include <string>             	// std::string, std::to_string;
+#include <time.h>          	    // Timestamps
 
-using std::cout;
 using std::cin;
-using std::string;
+using std::cout;
 using std::endl;
-using std::to_string;        	// for converting an int into a string.
+using std::string;
+using std::to_string;        	  // for converting an int into a string.
 
 /*
     This is a POST request which is hard coded to one project - project 929
@@ -78,7 +78,7 @@ void upload_to_rsense(string title, int num, string letters, time_t timestamp)
         // Verbose debug output - turn this on if you are having problems. It will spit out a ton of information.
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-        cout << "rSENSE says: \n";
+        cout << "\nrSENSE says: \n\n";
 
         // Perform the request, res will get the return code
         res = curl_easy_perform(curl);
@@ -126,7 +126,7 @@ int main ()
     cout << "The title you entered: " << title << endl;
     cout << "Letters you entered: " << letters << endl;
     cout << "Number you entered: " << num << endl;
-    cout << "Timestamp: " << timestamp << endl;
+    cout << "Timestamp: " << timestamp << endl << endl;
 
     // Right here I call a function to upload to rSENSE-dev.
     // I just pass it the title of the dataset and the number that the user entered.

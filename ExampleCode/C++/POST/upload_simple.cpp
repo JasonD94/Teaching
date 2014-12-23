@@ -1,7 +1,7 @@
 #include <iostream>
-//#include "Include/API.h"               // API class
-#include "Include/picojson.h"        // picojson for usin JSON easily.
-#include "Include/memfile.h"        // picojson/curl uses this for temp files
+//#include "Include/API.h"                // API class
+#include "include/picojson.h"             // picojson for usin JSON easily.
+#include "include/memfile.h"              // picojson/curl uses this for temp files
 #include "vector"
 
 using namespace std;

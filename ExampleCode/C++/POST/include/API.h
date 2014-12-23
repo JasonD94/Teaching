@@ -1,9 +1,9 @@
-#include <iostream>
-#include <string>                 // std::string, std::to_string;
 #include <ctime>                  // Timestamps
-#include <vector>
-#include <map>
 #include <curl/curl.h>            // cURL to make HTTP requests
+#include <iostream>
+#include <map>
+#include <string>                 // std::string, std::to_string;
+#include <vector>
 #include "picojson.h"             // picojson for using JSON easily.
 #include "memfile.h"              // picojson/curl uses this for temp files
 
@@ -24,13 +24,13 @@
 */
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
-using std::map;
-using std::vector;
-using std::cout;
 using std::cin;
-using std::string;
+using std::cout;
 using std::endl;
+using std::map;
+using std::string;
 using std::to_string;
+using std::vector;
 
 // For picojson
 using namespace picojson;
@@ -97,7 +97,7 @@ class iSENSE
     void post_media_objects_key();
     */
 
-    // For debugging, dump all the data.
+    // For debugging, dumps all the data.
     void debug();
 
   private:

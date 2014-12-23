@@ -1,12 +1,11 @@
 #include <iostream>                  // std::cout, std::cin
 #include <string>                    // std::string, std::to_string;
-#include "Include/API.h"             // API class
+#include "include/API.h"             // API class
 
-using std::cout;
 using std::cin;
-using std::string;
+using std::cout;
 using std::endl;
-using std::stringstream;
+using std::string;
 using std::to_string;
 
 // For picojson
@@ -59,7 +58,7 @@ int main ()
     }
 
     // Try grabbing fields. Hope this works!
-    test.GET_PROJ_FIELDS();
+    test.get_project_fields();
 
     // Try formatting the upload data string without uploading yet.
     test.format_upload_string();
@@ -72,16 +71,16 @@ int main ()
     do{
       cout << "Does the data look alright to you? (enter y/n) -> ";
       cin >> ans;
-    }while(ans != 'y' || ans != 'n');
+    }while(ans != 'y' && ans != 'n');
 
     if(ans == 'n')
     {
-      cout << "User chose not to upload. Quitting instead.\n";
-      return;
+      cout << "\nUser chose not to upload. Quitting instead.\n";
+      return 0;
     }
 
     cout << "Uploading to rSENSE.\n";
-    test.POST_JSON_KEY();
+    test.post_json_key();
 
     // In the future we should tell the user if this upload function was a success. Or if it failed then why.
     return 0;

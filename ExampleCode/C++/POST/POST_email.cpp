@@ -18,14 +18,17 @@ int main ()
     iSENSE test;
 
     // Get user input
-    string title, ID, key, letters, num, timestamp;
+    string title, ID, email, password, letters, num, timestamp;
 
     // Get user input.
     cout << "Please set the project ID for this dataset: ";     // Sets project ID
     getline(cin, ID);
 
-    cout << "Please set a contributor key for this project: ";  // Set contributor key
-    getline(cin, key);
+    cout << "Please set an email address (iSENSE account) for this project: ";  // Sets email address
+    getline(cin, email);
+
+    cout << "Please enter a password for the above iSENSE account: ";  // Sets password
+    getline(cin, password);
 
     cout << "Please enter a title for the dataset: ";       // Gets the title
     getline(cin, title);
@@ -38,8 +41,18 @@ int main ()
     // Add project info / dataset info to the object
     test.set_project_ID(ID);
     test.set_project_title(title);
-    test.set_project_label("cURL");
-    test.set_contributor_key(key);
+    test.set_project_label("C++");
+    test.set_email(email);
+    test.set_password(password);
+
+    // Do a quick test on the email / password to see if they are valid.
+    if(test.get_check_user() == false)
+    {
+      cout << "Email & Password are not valid!\n";
+    }
+    else {
+      cout << "Email & Password are valid.\n";
+    }
 
     // Let's also push some stuff back to the other vectors.
     /*
@@ -66,7 +79,7 @@ int main ()
     test.get_project_fields();
 
     // Try formatting the upload data string without uploading yet.
-    test.format_upload_string();
+    test.format_upload_string(false);
 
     // Check the fields for errors (manually compare against iSENSE)
     test.debug();
@@ -85,7 +98,7 @@ int main ()
     }
 
     cout << "Uploading to rSENSE.\n";
-    test.post_json_key();
+    test.post_json_email();
 
     // In the future we should tell the user if this upload function was a success. Or if it failed then why.
     return 0;

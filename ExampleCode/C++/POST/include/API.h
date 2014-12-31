@@ -1,8 +1,16 @@
 #ifndef API_h
 #define API_h
 
-#include <ctime>                  // Timestamps
+// Windows likes the curl header this way.
+#ifdef WIN32
+#include <curl.h>                 // cURL to make HTTP requests
+
+// Linux / other systems.
+#else
 #include <curl/curl.h>            // cURL to make HTTP requests
+#endif
+
+#include <ctime>                  // Timestamps
 #include <iostream>
 #include <map>
 #include <string>                 // std::string, std::to_string;
@@ -10,18 +18,18 @@
 #include "picojson.h"             // picojson for using JSON easily.
 #include "memfile.h"              // picojson/curl uses this for temp files.
                                   // Note: declared in memfile.h, but defined in api.cpp
-
 /*
     To do list:
-     1. Test in Windows
-     2. Work on email / password
-     3. Once that's done check email / password to see if it is valid.
-     4. Then start trying out amend / editing datasets.
-     5. Possibly some other GET functions
-     6. Media objects?
-     7. Make a dice roll app example using this project - shouldn't be that difficult.
-     8. Anything else? More testing in Windows, Mac.
-     9. Also make some sort of zip for people to use.
+     1. Work on email / password
+     2. Once that's done check email / password to see if it is valid.
+     3. Then start trying out amend / editing datasets.
+     4. Possibly some other GET functions
+     5. Media objects?
+     6. Make a dice roll app example using this project - shouldn't be that difficult.
+     7. Anything else? More testing in Windows, Mac.
+     8. Also make some sort of zip for people to use.
+
+     At some point, test this code in Xcode / MacOS X.
 */
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
@@ -44,7 +52,7 @@ class iSENSE
 {
   public:
     iSENSE();                                          // Default constructor
-    iSENSE(string proj_ID, string proj_title,          // Contructor with parameters.
+    iSENSE(string proj_ID, string proj_title,          // Contructor with parameters
            string label, string contr_key);
 
     // Similar to the constructor with parameters, but called after the object is created.
@@ -54,10 +62,10 @@ class iSENSE
 
     void set_project_ID(string proj_ID);                // This function should set up all the fields
     void set_project_title(string proj_title);          // The user should also set the project title
-    void set_project_label(string label);               // This one is optional, by default the label will be "cURL".
-    void set_contributor_key(string contr_key);         // User needs to set the contributor key they will be using
-
-    // In the future there should be a username & password function as well.
+    void set_project_label(string proj_label);          // This one is optional, by default the label will be "cURL"
+    void set_contributor_key(string proj_key);          // User needs to set the contributor key they will be using
+    void set_email(string proj_email);                  // Sets the email address to be used to upload data
+    void set_password(string proj_password);            // Sets the password to be used
 
     /*  This function will push data back to the map.
         User must give the pushback function the following:
@@ -69,7 +77,7 @@ class iSENSE
     string generate_timestamp(void);
 
     // This formats the upload string
-    void format_upload_string();
+    void format_upload_string(bool key);
 
     // This formats one FIELD ID : DATA pairs
     void format_data(vector<string> *vect, array::iterator it, string field_ID);
@@ -78,9 +86,12 @@ class iSENSE
     void get_project_fields();      // Pulls the fields and puts them into the fields object & array
     void post_json_key();           // Post using contributor key
 
+    // Email / Password functions
+    void post_json_email();         // Post using a email / password
+    bool get_check_user();          // Checks to see if a username / password is valid
+
+
     /*  Future functions to be implemented at a later date.
-    void post_json_email();                         // Post using a email / password
-    void get_check_user();                          // Checks to see if a username / password is valid
 
     void post_append_key();                         // Amend a dataset with a contributor key
     void post_append_email();                       // Amend a dataset with a email / password
@@ -93,7 +104,7 @@ class iSENSE
     void get_fields_by_id();                        // Get information about a field by field ID
     void get_search_projects(string search_term);   // Search for projects by search term
 
-    Possibly try posting media objects by email/password or contributor key:
+    // Possibly try posting media objects by email/password or contributor key:
     void post_media_objects_email();
     void post_media_objects_key();
     */
@@ -103,7 +114,7 @@ class iSENSE
 
   private:
     /*  These two 'objects' are picojson objects that will be used to upload to iSENSE. The upload_data object
-    contacts the entire upload string, in JSON format. Picojson will let us output this to a string and then pass
+    contains the entire upload string, in JSON format. Picojson will let us output this to a string and then pass
     that string to libcurl. The fields data object is the object that the 'data' part contains in the upload_data
     object. Basically it is a bunch of key:values, with the key being the field ID and the value being an array
     of data, whether it be numbers/text/etc.    */
@@ -116,18 +127,21 @@ class iSENSE
     value get_data, fields;
     array fields_array;
 
-    /* Data to be uploaded to iSENSE. The string is the field name, the vector of strings contains all the data
-    for that field name. */
+    /* Data to be uploaded to iSENSE.
+    The string is the field name, the vector of strings contains all the data for that field name. */
     map<string, vector<string>> map_data;
 
     // Data needed for processing the upload request
-    //bool usingDev;                  // Whether the user wants iSENSE or rSENSE (currently not implemented, future idea)
+    //bool usingDev;                  // Whether the user wants iSENSE or rSENSE
+                                      // (currently not implemented, future idea)
     string upload_URL;                // URL to upload the JSON to
     string get_URL;                   // URL to grab JSON from
     string title;                     // title for the dataset
     string project_ID;                // project ID of the project
     string contributor_label;         // Label for the contributor key. by default this is "cURL"
     string contributor_key;           // contributor key for the project
+    string email;                     // Email to be used to upload the data
+    string password;                  // Password to be used with the above email address
 };
 
 #endif

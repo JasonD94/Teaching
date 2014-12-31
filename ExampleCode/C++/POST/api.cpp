@@ -15,13 +15,15 @@ using std::vector;
 // Default constructor
 iSENSE::iSENSE()
 {
-	// Set these to default values for future references
+	// Set these to default values for future reference
 	upload_URL = "URL";
 	get_URL = "URL";
 	title = "title";
 	project_ID = "empty";
 	contributor_key = "key";
 	contributor_label = "label";
+	email = "email";
+	password = "password";
 }
 
 
@@ -35,8 +37,7 @@ iSENSE::iSENSE(string proj_ID, string proj_title, string label, string contr_key
 }
 
 
-// Similar to the constructor with parameters, but can be called at anytime to
-// set up the upload object.
+// Similar to the constructor with parameters, but can be called at anytime to set up the upload object.
 void iSENSE::set_project_all(string proj_ID, string proj_title, string label, string contr_key)
 {
 	set_project_ID(proj_ID);
@@ -65,16 +66,101 @@ void iSENSE::set_project_title(string proj_title)
 
 
 // This one is optional, by default the label will be "cURL".
-void iSENSE::set_project_label(string label)
+void iSENSE::set_project_label(string proj_label)
 {
-	contributor_label = label;
+	contributor_label = proj_label;
 }
 
 
 // As well as the contributor key they will be using
-void iSENSE::set_contributor_key(string contr_key)
+void iSENSE::set_contributor_key(string proj_key)
 {
-	contributor_key = contr_key;
+	contributor_key = proj_key;
+}
+
+
+// Sets the email address to be used to upload data
+void iSENSE::set_email(string proj_email)
+{
+	email = proj_email;
+}
+
+
+// Sets the password to be used
+void iSENSE::set_password(string proj_password)
+{
+	password = proj_password;
+}
+
+
+// Checks to see if the email / password is valid
+bool iSENSE::get_check_user()
+{
+	// First check to see if the email and password have been set.
+	if(email == "email" || password == "password")
+	{
+		cout << "Please set an email & password for this project.\n";
+	}
+	else if(email.empty() == true || password.empty() == true)
+	{
+		cout << "Please set an email & password for this project.\n";
+	}
+
+	// If we get here, an email and password have been set, so do a GET using
+	// the email & password.
+
+	string getUserURL = devURL + "users/myInfo";
+	value responseData;
+
+	// This project will try using CURL to make a basic GET request to rSENSE
+	// It will then save the JSON it recieves into a picojson object.
+	CURL *curl = curl_easy_init();;
+	CURLcode res;
+	MEMFILE* json_file = memfopen();           // Writing JSON to this file.
+	char error[256];                           // Errors get written here
+
+	if(curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, getUserURL.c_str());
+		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);    // Write errors to the char array "error"
+
+		// From the picojson example, "github-issues.cc". Used  for writing the JSON to a file.
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, memfwrite);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, json_file);
+
+		// Perform the request, res will get the return code
+		res = curl_easy_perform(curl);
+
+		// Check for errors before trying to use the JSON
+		if(res != CURLE_OK)
+		{
+			// Print out the error
+			cout << "Error occured! Error is: ";
+			cout << error << endl;
+
+			// Quit so we don't go to the next part.
+			return false;
+		}
+		// Good to try and parse the JSON into a PICOJSON object if we get here
+		string errors;
+
+		// This will parse the JSON file.
+		parse(responseData, json_file->data, json_file->data + json_file->size, &errors);
+
+		// If we have errors, print them out and quit.
+		if(errors.empty() != true)
+		{
+			cout << "Error parsing JSON file!\n";
+			cout << "Error was: " << errors;
+			return false;
+		}
+	}
+
+	// Clean up cURL and close the memfile
+	curl_easy_cleanup(curl);
+	curl_easy_init();
+
+	return true;
 }
 
 
@@ -88,7 +174,7 @@ string iSENSE::generate_timestamp(void)
 	time(&time_stamp);
 	char buffer[sizeof "2011-10-08T07:07:09Z"];
 
-	// This originally did not compile in Visual Studios. 
+	// This originally did not compile in Visual Studios.
 	// Note that "%F" and "%T" are not supported by Microsoft.
 	strftime(buffer, sizeof buffer, "%Y-%m-%dT%H:%M:%SZ", gmtime(&time_stamp));
 
@@ -122,7 +208,7 @@ void iSENSE::get_project_fields()
 	CURL *curl = curl_easy_init();;
 	CURLcode res;
 	MEMFILE* json_file = memfopen();           // Writing JSON to this file.
-	char error[256];                                        // Errors get written here
+	char error[256];                           // Errors get written here
 
 	if(curl)
 	{
@@ -176,27 +262,27 @@ void iSENSE::post_json_key()
 {
 	// Check that the project ID is set properly.
 	// When the ID is set, the fields are also pulled down as well.
-	if(project_ID == "empty")
+	if(project_ID == "empty" || project_ID.empty() == true)
 	{
 		cout << "\nError - please set a project ID!\n";
 		return;
 	}
 
 	// Check that a title and contributor key has been set.
-	if(title == "title")
+	if(title == "title" || title.empty() == true)
 	{
 		cout << "\nError - please set a project title!\n";
 		return;
 	}
 
-	if(contributor_key == "key")
+	if(contributor_key == "key" || contributor_key.empty() == true)
 	{
 		cout << "\nErrror - please set a contributor key!\n";
 		return;
 	}
 
 	// If a label wasn't set, automatically set it to "cURL"
-	if(contributor_label == "label")
+	if(contributor_label == "label" || contributor_label.empty() == true)
 	{
 		contributor_label = "cURL";
 	}
@@ -212,7 +298,122 @@ void iSENSE::post_json_key()
 	// if any ONE vector was empty. rSENSE complained about the nil class.
 
 	// Format the data to be uploaded. Call another function to format this.
-	format_upload_string();
+	format_upload_string(true);
+
+	/*  Once we get the data formatted, we can try to POST to rSENSE
+	The below code uses cURL. It
+	1. sets the headers, so iSENSE knows we are sending it JSON
+	2. does some curl init stuff that makes the magic happen.
+	3. cURL sends off the request, we can grab the return code to see if cURL failed.
+	also check the curl verbose debug to see why something failed.       */
+
+	// CURL object and response code.
+	CURL *curl;
+	CURLcode res;
+
+	// In windows, this will init the winsock stuff
+	res = curl_global_init(CURL_GLOBAL_DEFAULT);
+
+	// Set the headers to JSON, makesure to use UTF-8
+	struct curl_slist *headers = NULL;
+	headers = curl_slist_append(headers, "Accept: application/json");
+	headers = curl_slist_append(headers, "Accept-Charset: utf-8");
+	headers = curl_slist_append(headers, "charsets: utf-8");
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+
+	// get a curl handle
+	curl = curl_easy_init();
+
+	if(curl)
+	{
+		// Set the URL that we will be using for our POST.
+		curl_easy_setopt(curl, CURLOPT_URL, upload_URL.c_str());
+
+		// This is necessary! As I had issues with only 1 byte being sent off to iSENSE
+		// unless I made sure to make a string out of the upload_data picojson object,
+		// then with that string you can call c_str() on it below.
+		string upload_real = (value(upload_data).serialize());
+
+		// POST data. Upload will be the string with all the data.
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, upload_real.c_str());
+
+		// JSON Headers
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+		// Verbose debug output - turn this on if you are having problems. It will spit out a ton of information,
+		// such as bytes sent off, headers/access/etc. Useful to see if you formatted the data right.
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+		cout << "\nrSENSE response: \n";
+
+		// Perform the request, res will get the return code
+		res = curl_easy_perform(curl);
+
+		// For cURL return codes, see the following page:
+		// http://curl.haxx.se/libcurl/c/libcurl-errors.html
+		cout << "\n\ncURL return code was: " << res << endl;
+
+		// Check for errors
+		if(res != CURLE_OK)
+		{
+			fprintf(stderr, "curl_easy_perform() failed: %s\n",
+			curl_easy_strerror(res));
+		}
+
+		curl_easy_cleanup(curl);                // always cleanup
+	}
+	curl_global_cleanup();
+}
+
+
+// Post using a email / password
+void iSENSE::post_json_email()
+{
+	// Check that the project ID is set properly.
+	// When the ID is set, the fields are also pulled down as well.
+	if(project_ID == "empty" || project_ID.empty() == true)
+	{
+		cout << "\nError - please set a project ID!\n";
+		return;
+	}
+
+	// Check that a title and contributor key has been set.
+	if(title == "title" || title.empty() == true)
+	{
+		cout << "\nError - please set a project title!\n";
+		return;
+	}
+
+	if(email == "email" || email.empty() == true)
+	{
+		cout << "\nErrror - please set an email address!\n";
+		return;
+	}
+
+	if(password == "password" || password.empty() == true)
+	{
+		cout << "\nErrror - please set a password!\n";
+		return;
+	}
+
+	// If a label wasn't set, automatically set it to "cURL"
+	if(contributor_label == "label" || contributor_label.empty() == true)
+	{
+		contributor_label = "cURL";
+	}
+
+	// Make sure the map actually has stuff pushed to it.
+	if(map_data.empty() == true)
+	{
+		cout << "Map of keys/data is empty. You should push some data back to this object.\n";
+		return;
+	}
+
+	// Should make sure each vector is not empty as well, since I had issues uploading
+	// if any ONE vector was empty. rSENSE complained about the nil class.
+
+	// Format the data to be uploaded. Call another function to format this.
+	format_upload_string(false);
 
 	/*  Once we get the data formatted, we can try to POST to rSENSE
 	The below code uses cURL. It
@@ -282,12 +483,20 @@ void iSENSE::post_json_key()
 
 // This function is called by the JSON uplosad function
 // It formats the upload string
-void iSENSE::format_upload_string()
+void iSENSE::format_upload_string(bool key)
 {
 	// Add the title + the correct formatting
 	upload_data["title"] = value(title);
-	upload_data["contribution_key"] = value(contributor_key);
-	upload_data["contributor_name"] = value(contributor_label);
+
+	if(key == true)
+	{
+		upload_data["contribution_key"] = value(contributor_key);
+		upload_data["contributor_name"] = value(contributor_label);
+	}
+	else{
+		upload_data["email"] = value(email);
+		upload_data["password"] = value(password);
+	}
 
 	// Add each field, with its field ID and an array of all the data in its vector.
 
@@ -352,6 +561,8 @@ void iSENSE::debug()
 	cout << "Project ID: \t\t" << project_ID << endl;
 	cout << "Contributor  Key: \t" << contributor_key << endl;
 	cout << "Contributor Label: \t" << contributor_label << endl;
+	cout << "Email Address: \t\t" << email << endl;
+	cout << "Password: \t\t" << password << endl;
 	cout << "Upload URL: \t\t" << upload_URL << "\n";
 	cout << "GET URL: \t\t" << get_URL << "\n\n";
 	cout << "Upload string: \n" << value(upload_data).serialize() << "\n\n";

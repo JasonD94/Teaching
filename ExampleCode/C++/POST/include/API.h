@@ -5,7 +5,7 @@
 #ifdef WIN32
 #include <curl.h>                 // cURL to make HTTP requests
 
-// Linux / other systems.
+// Linux / other systems. (Test MacOS and see if it likes it this way or the Windows way)
 #else
 #include <curl/curl.h>            // cURL to make HTTP requests
 #endif
@@ -20,16 +20,13 @@
                                   // Note: declared in memfile.h, but defined in api.cpp
 /*
     To do list:
-     1. Work on email / password
-     2. Once that's done check email / password to see if it is valid.
-     3. Then start trying out amend / editing datasets.
-     4. Possibly some other GET functions
-     5. Media objects?
-     6. Make a dice roll app example using this project - shouldn't be that difficult.
-     7. Anything else? More testing in Windows, Mac.
-     8. Also make some sort of zip for people to use.
+    1. Make a dice roll app
+    2. Try other GET/POST API functions, such as amending/editing datasets.
+    3. Try media objects.
+    4. Create a zip file for people to download for Linux / Mac / Windows.
 
-     At some point, test this code in Xcode / MacOS X.
+    Currently working in Linux & Windows 8.1 (x64)
+    Test in x86 if possible (VM?) and Windows 7. Also Mac OS.
 */
 
 // To avoid poluting the namespace, and also to avoid typing std:: everywhere.
@@ -45,6 +42,8 @@ using std::vector;
 using namespace picojson;
 
 // Constants for the rest of the class
+const string dev_baseURL = "http://rsense-dev.cs.uml.edu";
+const string live_baseURL = "http://isenseproject.org";
 const string devURL = "http://rsense-dev.cs.uml.edu/api/v1";
 const string liveURL = "http://isenseproject.org/api/v1";
 
@@ -70,7 +69,7 @@ class iSENSE
     /*  This function will push data back to the map.
         User must give the pushback function the following:
         1. Field name (as seen on iSENSE)
-        2. some data (in string format). For numbers, use to_string.         */
+        2. Some data (in string format). For numbers, use to_string.         */
     void push_back(string field_name, string data);
 
     // I also created a timestamp function to make it easier for users to use timestamps in their project.
@@ -79,20 +78,18 @@ class iSENSE
     // This formats the upload string
     void format_upload_string(bool key);
 
-    // This formats one FIELD ID : DATA pairs
+    // This formats one FIELD ID : DATA pair
     void format_data(vector<string> *vect, array::iterator it, string field_ID);
 
-    // iSENSE API functions
-    void get_project_fields();      // Pulls the fields and puts them into the fields object & array
-    void post_json_key();           // Post using contributor key
-
-    // Email / Password functions
-    void post_json_email();         // Post using a email / password
+    /*  iSENSE API functions
+        Note: methods which return bool return true for success and false for failure.
+        They also output the reasons for failure to the screen.   */
+    bool get_project_fields();      // Pulls the fields and puts them into the fields object & array
     bool get_check_user();          // Checks to see if a username / password is valid
-
+    bool post_json_email();         // Post using a email / password
+    bool post_json_key();           // Post using contributor key
 
     /*  Future functions to be implemented at a later date.
-
     void post_append_key();                         // Amend a dataset with a contributor key
     void post_append_email();                       // Amend a dataset with a email / password
     void post_edit_key();                           // Edit a dataset with a dataset ID & contributor key
@@ -104,7 +101,7 @@ class iSENSE
     void get_fields_by_id();                        // Get information about a field by field ID
     void get_search_projects(string search_term);   // Search for projects by search term
 
-    // Possibly try posting media objects by email/password or contributor key:
+    // Possibly try posting media objects by email/password or contributor key.
     void post_media_objects_email();
     void post_media_objects_key();
     */
@@ -136,6 +133,7 @@ class iSENSE
                                       // (currently not implemented, future idea)
     string upload_URL;                // URL to upload the JSON to
     string get_URL;                   // URL to grab JSON from
+    string get_UserURL;               // URL to test credentials
     string title;                     // title for the dataset
     string project_ID;                // project ID of the project
     string contributor_label;         // Label for the contributor key. by default this is "cURL"

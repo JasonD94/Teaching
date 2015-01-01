@@ -21,16 +21,16 @@ int main ()
     string title, ID, email, password, letters, num, timestamp;
 
     // Get user input.
-    cout << "Please set the project ID for this dataset: ";     // Sets project ID
-    getline(cin, ID);
+    cout << "Please set the project ID for this dataset: ";
+    getline(cin, ID);                                   // Sets project ID
 
-    cout << "Please set an email address (iSENSE account) for this project: ";  // Sets email address
-    getline(cin, email);
+    cout << "Please set an email address for this dataset: ";
+    getline(cin, email);                                // Sets email address
 
-    cout << "Please enter a password for the above iSENSE account: ";  // Sets password
-    getline(cin, password);
+    cout << "Please enter a password for this dataset: ";
+    getline(cin, password);                             // Sets password
 
-    cout << "Please enter a title for the dataset: ";       // Gets the title
+    cout << "Please enter a title for the dataset: ";   // Gets the title
     getline(cin, title);
 
     /*  Add a timestamp to the title to avoid duplicates
@@ -46,13 +46,7 @@ int main ()
     test.set_password(password);
 
     // Do a quick test on the email / password to see if they are valid.
-    if(test.get_check_user() == false)
-    {
-      cout << "Email & Password are not valid!\n";
-    }
-    else {
-      cout << "Email & Password are valid.\n";
-    }
+    test.get_check_user();
 
     // Let's also push some stuff back to the other vectors.
     /*
@@ -97,7 +91,7 @@ int main ()
       return 0;
     }
 
-    cout << "Uploading to rSENSE.\n";
+    cout << "\nUploading to rSENSE.\n";
     test.post_json_email();
 
     // In the future we should tell the user if this upload function was a success. Or if it failed then why.

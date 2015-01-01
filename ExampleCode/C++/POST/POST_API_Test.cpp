@@ -7,6 +7,7 @@
 	Hard coded to project 993.
 */
 
+// To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::cin;
 using std::cout;
 using std::endl;

@@ -2,6 +2,7 @@
 #include <string>                    // std::string, std::to_string;
 #include "include/API.h"             // API class
 
+// To avoid poluting the namespace, and also to avoid typing std:: everywhere.
 using std::cin;
 using std::cout;
 using std::endl;
@@ -27,7 +28,7 @@ int main ()
     cout << "Please set a contributor key for this project: ";  // Set contributor key
     getline(cin, key);
 
-    cout << "Please enter a title for the dataset: ";       // Gets the title
+    cout << "Please enter a title for the dataset: ";           // Gets the title
     getline(cin, title);
 
     /*  Add a timestamp to the title to avoid duplicates
@@ -84,7 +85,7 @@ int main ()
       return 0;
     }
 
-    cout << "Uploading to rSENSE.\n";
+    cout << "\nUploading to rSENSE.\n";
     test.post_json_key();
 
     // In the future we should tell the user if this upload function was a success. Or if it failed then why.

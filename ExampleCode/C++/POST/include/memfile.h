@@ -15,6 +15,7 @@ typedef struct {
 
 MEMFILE*  memfopen();
 void memfclose(MEMFILE* mf);
+size_t suppress_output(char* ptr, size_t size, size_t nmemb, void* stream);
 size_t memfwrite(char* ptr, size_t size, size_t nmemb, void* stream);
 char* memfstrdup(MEMFILE* mf);
 

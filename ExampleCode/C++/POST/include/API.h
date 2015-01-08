@@ -84,10 +84,11 @@ class iSENSE
     /*  iSENSE API functions
         Note: methods which return bool return true for success and false for failure.
         They also output the reasons for failure to the screen.   */
-    bool get_project_fields();      // Pulls the fields and puts them into the fields object & array
-    bool get_check_user();          // Checks to see if a username / password is valid
-    bool post_json_email();         // Post using a email / password
-    bool post_json_key();           // Post using contributor key
+    bool get_check_user();                          // Checks to see if a username / password is valid
+    bool get_project_fields();                      // Pulls the fields and puts them into the fields object & array
+    vector<string> get_projects_search(string search_term);    // Search for projects with the search term
+    bool post_json_email();                         // Post using a email / password
+    bool post_json_key();                           // Post using contributor key
 
     /*  Future functions to be implemented at a later date.
     void post_append_key();                         // Amend a dataset with a contributor key

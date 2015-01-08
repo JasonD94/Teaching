@@ -123,6 +123,132 @@ void iSENSE::push_back(string field_name, string data)
 }
 
 
+// Searches for projects with the search term.
+// Returns a vector with projects that show up.
+vector<string> iSENSE::get_projects_search(string search_term)
+{
+	string get_search = devURL + "/projects?utf8=true&search=" + search_term + "&sort=updated_at&order=DESC";
+
+	// Vector of project titles.
+	vector<string> project_titles;
+
+	// This project will try using CURL to make a basic GET request to rSENSE
+	CURL *curl = curl_easy_init();;			// cURL object
+	CURLcode curl_code;									// cURL status code
+	long http_code;											// HTTP status code
+	MEMFILE* json_file = memfopen();    // Writing JSON to this file.
+	char error[256];                    // Errors get written here
+
+	if(curl)
+	{
+		// Set the GET URL, in this case the one be created above using the user's
+		// email & password.
+		curl_easy_setopt(curl, CURLOPT_URL, get_search.c_str());
+		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);    	// Write errors to the char array "error"
+
+		// From the picojson example, "github-issues.cc". Used  for writing the JSON to a file.
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, memfwrite);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, json_file);
+
+		// Perform the request
+		curl_easy_perform(curl);
+
+		// We can actually get the HTTP response code from cURL, so let's do that to check for errors.
+		http_code = 0;
+
+		// This will put the HTTP response code into the "http_code" variable.
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+		// cout the http code.
+		cout << "\nhttp code was: " << http_code << endl << endl;
+
+		/*
+		The iSENSE API gives us one response code to check against:
+		Success: 200 OK
+		If we do not get a code 200 from iSENSE, something went wrong.
+		*/
+
+		// If we do not get a code 200, or cURL quits for some reason, we didn't successfully
+		// get the project's fields.
+		if(http_code != 200)
+		{
+			cout << "\nProject search failed.\n";
+
+			// Clean up cURL and close the memfile
+			curl_easy_cleanup(curl);
+			curl_global_cleanup();
+			memfclose(json_file);
+
+			return project_titles;
+		}
+
+		// We got a code 200, so try and parse the JSON into a PICOJSON object.
+		// Error checking for the parsing occurs below.
+		string errors;
+		value projects_json;
+
+		// This will parse the JSON file.
+		parse(projects_json, json_file->data, json_file->data + json_file->size, &errors);
+
+		// If we have errors, print them out and quit.
+		if(errors.empty() != true)
+		{
+			cout << "\nError parsing JSON file!\n";
+			cout << "Error was: " << errors;
+
+			// Clean up cURL and close the memfile
+			curl_easy_cleanup(curl);
+			curl_global_cleanup();
+			memfclose(json_file);
+
+			return project_titles;
+		}
+
+		// Convert the JSON array (projects_json) into a vector of strings (strings would be project titles);
+		array projects_array = projects_json.get<array>();;
+		array::iterator it, the_begin, the_end;
+
+		the_begin = projects_array.begin();
+		the_end = projects_array.end();
+
+		// Check and see if the projects_title JSON array is empty
+		if(the_begin == the_end)
+		{
+			// Print an error and quit, we can't make a vector of project titles to return
+			// if the JSON array ended up empty. Probably wasn't any projects with that search term.
+			cout << "\nProject title array is empty.\n";
+
+			// Clean up cURL and close the memfile
+			curl_easy_cleanup(curl);
+			curl_global_cleanup();
+			memfclose(json_file);
+
+			return project_titles;	// this is an empty vector
+		}
+
+		// If we make here, we can make a vector of project titles and return that to the user.
+		for(it = projects_array.begin(); it != projects_array.end(); it++)
+		{
+			// Get the current object
+			object obj = it->get<object>();
+
+			// Grab the field name
+			string name = obj["name"].get<string>();
+
+			// Push the name back into the vector.
+			project_titles.push_back(name);
+		}
+
+		// Clean up cURL and close the memfile
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+		memfclose(json_file);
+
+		return project_titles;
+	}
+}
+
+
 // Checks to see if the email / password is valid
 bool iSENSE::get_check_user()
 {
@@ -174,9 +300,9 @@ bool iSENSE::get_check_user()
 
 		if(http_code == 200)
 		{
-			// Clean up cURL and close the memfile
+			// Clean up cURL
 			curl_easy_cleanup(curl);
-			curl_easy_init();
+			curl_global_cleanup();
 
 			// Return success.
 			return true;
@@ -185,9 +311,9 @@ bool iSENSE::get_check_user()
 				cout << "\nThe email and/or password you entered was **not** valid.\n";
 				cout << "Please try entering the email / password again.\n";
 
-				// Clean up cURL and close the memfile
+				// Clean up cURL
 				curl_easy_cleanup(curl);
-				curl_easy_init();
+				curl_global_cleanup();
 
 				// Return failure.
 				return false;
@@ -247,7 +373,7 @@ bool iSENSE::get_project_fields()
 
 			// Clean up cURL and close the memfile
 			curl_easy_cleanup(curl);
-			curl_easy_init();
+			curl_global_cleanup();
 			memfclose(json_file);
 
 			return false;
@@ -275,7 +401,7 @@ bool iSENSE::get_project_fields()
 
 	// Clean up cURL and close the memfile
 	curl_easy_cleanup(curl);
-	curl_easy_init();
+	curl_global_cleanup();
 	memfclose(json_file);
 
 	// Return true as we were able to successfully get the project's fields.
@@ -690,6 +816,21 @@ void iSENSE::debug()
 	cout << "Upload string: \n" << value(upload_data).serialize() << "\n\n";
 	cout << "GET Data: \n" << get_data.serialize() << "\n\n";
 	cout << "GET Field Data: \n" << fields.serialize() << "\n\n";
+	cout << "Map data: \n";
+
+	// These for loops will dump all the data in the map.
+	// Good for debugging.
+	for(map<string, vector<string>>::iterator it = map_data.begin(); it != map_data.end(); it++)
+	{
+		cout << it->first << " ";
+
+		for(vector<string>::iterator vect = (it->second).begin(); vect != (it->second).end(); vect++)
+		{
+			cout << *vect << " ";
+		}
+
+		cout << "\n";
+	}
 }
 
 

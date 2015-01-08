@@ -31,6 +31,7 @@ In the future MacOS will be tested and any other issues will be noted.
 
 
 Confirmed working in Windows 7, 8.1 (x64) and Ubuntu 14.04LTS (x64)
+
 Unconfirmed: MacOS X
 
 NOTES:

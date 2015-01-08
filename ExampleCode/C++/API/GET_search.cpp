@@ -28,6 +28,11 @@ int main ()
 	// to the vector.
 	vector<string> project_titles = test.get_projects_search(search_term);
 
+	if(project_titles.empty() != true)
+	{
+		cout << "\nPrinting out a list of projects with that search term.\n";
+	}
+
 	// Print out all the titles in the vector.
 	for(vector<string>::iterator it = project_titles.begin(); it != project_titles.end(); it++)
 	{

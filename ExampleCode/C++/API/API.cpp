@@ -159,9 +159,6 @@ vector<string> iSENSE::get_projects_search(string search_term)
 		// This will put the HTTP response code into the "http_code" variable.
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
-		// cout the http code.
-		cout << "\nhttp code was: " << http_code << endl << endl;
-
 		/*
 		The iSENSE API gives us one response code to check against:
 		Success: 200 OK
